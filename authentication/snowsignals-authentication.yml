@@ -1,0 +1,26 @@
+generated: '2026-09-10'
+method: derived
+source: openapi/snowsignals-daas-openapi.json
+summary:
+  types:
+  - apiKey
+  api_key_in:
+  - header
+  - query
+schemes:
+- name: UrlKey
+  type: apiKey
+  in: query
+  parameter: apiKey
+  description: 'url method (default): pass your key as `?apiKey=<key>`. The key is the whole
+    credential.'
+  sources:
+  - openapi/snowsignals-daas-openapi.json
+- name: ApiKey
+  type: apiKey
+  in: header
+  parameter: Authorization
+  description: 'nonce method: `ApiKey base64(key:nonce:proof)` where `proof = SHA256("secret:nonce")`
+    hex truncated to 19 chars (see the API description for the signing scheme).'
+  sources:
+  - openapi/snowsignals-daas-openapi.json

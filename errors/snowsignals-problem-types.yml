@@ -1,0 +1,35 @@
+generated: '2026-09-10'
+method: derived
+source: openapi/snowsignals-daas-openapi.json (fetched from https://snowsignals.io/v1/openapi.json, 2026-09-10)
+format: json   # plain JSON error bodies; NOT rfc9457 problem+json
+summary: >-
+  Errors are signaled by HTTP status with documented per-status semantics; the billing-specific
+  statuses (402 no-partial-serve, 423 refund-settling) are the distinctive part of the surface.
+problems:
+- status: 400
+  title: Invalid request
+  detail: >-
+    Invalid currency or tf on phase reads. On notifications: invalid cursor, unknown category,
+    category=security (never available over the API), or a category disabled on the api channel —
+    disabled/unavailable categories fail loud rather than returning an empty page, so "hidden by
+    policy" is distinguishable from "no messages".
+  remediation: Read the enabled currencies/timeframes from GET /api/phases (free) before a paid call.
+- status: 401
+  title: Missing or invalid credential
+  detail: >-
+    The two REST auth methods (url apiKey query param, nonce Authorization header) are mutually
+    exclusive per account; a request not matching the account's method is 401. On the nonce method a
+    fast client clock is a one-way trap: a stored high nonce makes every later honest nonce lower,
+    401ing the key until an operator resets it.
+  remediation: Check GET /v1/api/time (public, unmetered) and offset the nonce by the clock difference.
+- status: 402
+  title: Out of credits
+  detail: Prepaid balance insufficient for the priced request; no partial serve.
+  remediation: Top up in stablecoin; check cost first via the pricing model in GET /api/phases / list_phase_meta, and balance via /user/balance.
+- status: 423
+  title: Account spending paused
+  detail: A refund is settling; metered spend is locked until it completes.
+- status: 429
+  title: Rate limit exceeded
+  detail: Per-key on authenticated operations; per-IP on the free resolution-stats path. Carries a Retry-After header.
+  remediation: Honor Retry-After. On the nonce auth method a single key allows one in-flight request at a time — batch via compose (multi-TF/multi-currency in one call) or use multiple keys for parallelism.

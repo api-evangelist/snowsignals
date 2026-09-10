@@ -1,0 +1,42 @@
+generated: '2026-09-10'
+method: searched
+source: >-
+  registry.npmjs.org search + package metadata (registry.npmjs.org/snowsignals-api), PyPI
+  (pypi.org/pypi/snowsignals/json 404), and the github.com/snowkidind account inventory,
+  probed 2026-09-10. No package registry serves a client for the current v1 daas API or the
+  MCP server: the official MCP repo (github.com/snowkidind/snowsignals-mcp) is a connection
+  guide + manifest only — the server is hosted-only by design, so there is nothing to install.
+summary: >-
+  One first-party package exists on npm and it is a legacy client for the PREVIOUS SnowSignals
+  API generation, not the current TrendVane daas surface. No SDK wraps the current
+  https://snowsignals.io/v1 API — by design, consumption is the hosted MCP server or plain REST.
+packages:
+- name: snowsignals-api
+  registry: npm
+  url: https://www.npmjs.com/package/snowsignals-api
+  official: true
+  language: JavaScript (Node.js)
+  version: 1.1.0
+  published: '2020-11-02'
+  note: >-
+    First-party but LEGACY: published by npm maintainer "snowkid" (the same operator as
+    github.com/snowkidind, owner of the official snowsignals-mcp registry repo), described as
+    "Access to the SnowSignals Platform". It wraps the prior-generation API at
+    snowsignals.com:3333 (refresh-token auth, pair/exchange analysis calls) — not the current
+    v1 daas API at snowsignals.io/v1 (2026, apiKey/nonce auth) and not the MCP server. Last
+    release 2020-11-02, ~6 years before the current platform shipped: currency signal, not a
+    working client for today's surface. The different domain (snowsignals.com vs snowsignals.io)
+    is the same brand's earlier home; snowsignals.com still answers (HTTP 308) and the package
+    readme names it.
+related_repos:
+- name: snowsignals-mcp
+  url: https://github.com/snowkidind/snowsignals-mcp
+  official: true
+  note: Connection guide + MCP registry manifest for the hosted server; no installable code.
+- name: snowsignals-x402
+  url: https://github.com/snowkidind/snowsignals-x402
+  official: true
+  note: >-
+    Source of the live x402 gateway at https://pay.snowsignals.io (Cloudflare Worker; see
+    openapi/snowsignals-x402-openapi.json). A deployable service, not a client library — no
+    registry distribution.

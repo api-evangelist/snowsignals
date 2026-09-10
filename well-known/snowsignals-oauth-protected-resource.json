@@ -1,0 +1,1 @@
+{"resource":"https://snowsignals.io/mcp","authorization_servers":["https://snowsignals.io"],"scopes_supported":["daas:read"],"bearer_methods_supported":["header"]}

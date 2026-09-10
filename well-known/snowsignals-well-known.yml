@@ -1,0 +1,46 @@
+generated: '2026-09-10'
+method: probed
+source: live probes of /.well-known/ on snowsignals.io (the only host; www 301s to apex)
+summary: >-
+  Two real documents are served on the apex host: RFC 8414 authorization-server metadata and
+  RFC 9728 protected-resource metadata for the MCP endpoint (scope daas:read, PKCE S256, dynamic
+  client registration). The site also serves a first-party APIs.json at /apis.json (saved here) and
+  advertises it via a rel="apis.json" link in the page head. Nothing else is served: no security.txt
+  (checked at /.well-known/ and root — so NO SecurityTxt pointer), no api-catalog, no ai-plugin.json,
+  no OIDC discovery, and no A2A agent card at either the canonical or legacy path.
+pointer_basis: >-
+  WellKnown pointer emitted on the strength of the two OAuth-discovery 200s. SecurityTxt pointer NOT
+  emitted — RFC 9116 unimplemented.
+false_positive_watch: >-
+  snowsignals.io is an SPA that answers 200 with the site shell for unknown HTML routes (a control
+  path confirms it), but JSON/API-ish paths — including every /.well-known/ miss below — return real
+  404s with an application/json body, so the statuses recorded here are meaningful.
+hosts:
+  - host: https://snowsignals.io
+    documents:
+      - path: /.well-known/oauth-authorization-server   # RFC 8414
+        status: 200
+        file: snowsignals-oauth-authorization-server.json
+      - path: /.well-known/oauth-protected-resource      # RFC 9728
+        status: 200
+        file: snowsignals-oauth-protected-resource.json
+      - path: /apis.json                                 # APIs.json (advertised via rel=apis.json link)
+        status: 200
+        file: snowsignals-apis-json.json
+      - path: /.well-known/security.txt
+        status: 404
+      - path: /security.txt
+        status: 404
+      - path: /.well-known/openid-configuration
+        status: 404
+      - path: /.well-known/api-catalog
+        status: 404
+      - path: /.well-known/ai-plugin.json
+        status: 404
+      - path: /.well-known/agent-card.json
+        status: 404
+      - path: /.well-known/agent.json
+        status: 404
+      - path: /.well-known/mcp.json
+        status: 404
+    checked: '2026-09-10'

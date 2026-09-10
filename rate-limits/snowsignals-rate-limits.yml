@@ -1,0 +1,39 @@
+generated: '2026-09-10'
+method: derived
+source: >-
+  openapi/snowsignals-daas-openapi.json (fetched from https://snowsignals.io/v1/openapi.json,
+  2026-09-10) — every metered/notifications operation documents a 429 response with a Retry-After
+  header; scopes and the one-in-flight nonce constraint are documented in the spec's auth prose.
+summary: >-
+  Rate limiting is documented as a runtime signal, not as published numbers: the contract declares
+  the 429 status and Retry-After header on the authenticated operations and describes the scopes
+  (per-key on authenticated calls, per-IP on the free resolution-stats path), but no numeric
+  ceiling (requests/window) is published anywhere. The distinctive constraint is concurrency, not
+  rate: the nonce auth method's strictly-increasing nonce allows exactly ONE in-flight request per
+  key, so parallelism requires batching (compose / comma-list currency+tf) or multiple keys.
+limit_count: 0
+limits: []
+signaling:
+  status_on_exhaustion: 429
+  response_headers:
+  - Retry-After
+  ratelimit_headers_documented: false   # no X-RateLimit-* / RateLimit-* headers in the contract
+scopes:
+- scope: per-key
+  applies_to: authenticated operations (phase reads, notifications, balance, usage)
+  window: unpublished
+  limit: null
+  note: Documented qualitatively ("per-key rate limit") with 429 + Retry-After; no number stated.
+- scope: per-IP
+  applies_to: free unauthenticated GET /api/phase/resolution-stats
+  window: unpublished
+  limit: null
+concurrency:
+  nonce_auth_method: >-
+    One in-flight request per key (the nonce must be strictly increasing, so a second concurrent
+    request would race the stored nonce). Documented remedies: batch multi-currency/multi-timeframe
+    reads into one call, or issue multiple keys.
+notes: >-
+  An honest zero on limit_count: the numeric ceilings are unpublished. Agents should treat
+  Retry-After as authoritative and precompute cost/row-count via the free pricing metadata rather
+  than probing the limit.

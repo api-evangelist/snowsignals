@@ -1,0 +1,29 @@
+generated: '2026-09-10'
+method: probed
+source: >-
+  https://snowsignals.io/.well-known/oauth-authorization-server (RFC 8414, fetched 2026-09-10) and
+  https://snowsignals.io/.well-known/oauth-protected-resource (RFC 9728); per-tool auth requirements
+  read from the live MCP tools/list (mcp/snowsignals-mcp-tools-list.json).
+note: >-
+  The REST OpenAPI declares only apiKey schemes (url / nonce methods), so OAuth scopes are not in the
+  spec — the OAuth surface belongs to the MCP endpoint. One scope exists. Public client with PKCE
+  S256, dynamic client registration open at /v1/oauth/register, token endpoint auth method `none`.
+authorization_server: https://snowsignals.io
+authorization_endpoint: https://snowsignals.io/oauth/authorize
+token_endpoint: https://snowsignals.io/v1/oauth/token
+registration_endpoint: https://snowsignals.io/v1/oauth/register
+protected_resource: https://snowsignals.io/mcp
+scopes:
+- scope: daas:read
+  description: >-
+    Read access to the metered/account MCP tools: get_phase, compose_phases (metered) and
+    get_notifications, get_balance, get_usage, deposit_poll (free but account-bound). The two
+    discovery tools (list_phase_meta, phase_resolution_stats) need no scope and no account.
+  operations:
+  - get_phase
+  - compose_phases
+  - get_notifications
+  - get_balance
+  - get_usage
+  - deposit_poll
+scope_count: 1

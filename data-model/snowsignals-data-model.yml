@@ -1,0 +1,62 @@
+generated: '2026-09-10'
+method: derived
+source: >-
+  openapi/snowsignals-daas-openapi.json components.schemas + inline response schemas (fetched from
+  https://snowsignals.io/v1/openapi.json, 2026-09-10) and the live list_phase_meta payload
+  (phases/labels/tfs/currencies/cards/pricing keys, probed 2026-09-10).
+summary: >-
+  A small read-model: phase readings keyed by currency x timeframe, an account
+  (balance/usage/notifications) surface, and static model metadata. Identifiers are natural keys
+  (currency code, timeframe, 12-value phase enum) rather than opaque ids; the only opaque ids are
+  notification ids and pagination cursors.
+entities:
+- name: PhaseReading
+  schema: '#/components/schemas/PhaseReading'
+  description: One market-phase observation — ts, phase (12-value enum), display label.
+  natural_key: currency + timeframe (+ kind boundary|updates)
+  fields:
+    phase: 'enum of 12: {establishing,running_reentry,running_first,consolidating,running_post_fe,breaking} x {bull,bear}'
+    label: display-only; derived from phase (full map at GET /api/phases) — do not key logic on it
+- name: PhaseMeta
+  schema: inline (GET /api/phases response / list_phase_meta)
+  description: Static model metadata — phase enum + labels, enabled timeframes and currencies, a prose card per phase, and the live pricing model.
+- name: PhaseResolutionStats
+  schema: inline (GET /api/phase/resolution-stats response)
+  description: BTC-derived research artifact — successor-phase transition matrix, trend-continuation funnel, per-phase MFE/MAE, each with sample counts and provenance (statsVersion, generatedAt, window).
+- name: Notification
+  schema: '#/components/schemas/Notification'
+  description: Read-only account message (support/billing), with id, category, title, snippet, in-app link.
+  id_style: opaque numeric string (e.g. "1287")
+- name: NotificationPage
+  schema: '#/components/schemas/NotificationPage'
+  description: Cursor page of notifications — rows[] (max 10, newest first) + nextCursor.
+- name: Balance
+  schema: inline (GET /user/balance response)
+  description: Prepaid balance, holds, bonus credit + expiry, pause state, current pricing, deposit addresses (chain/address/token rows).
+- name: UsageEntry
+  schema: inline (GET /user/usage response)
+  description: One paid call — tool/endpoint, currencies, timeframes, rows served, debit; id-cursor paginated via `before`.
+relationships:
+- from: NotificationPage
+  to: Notification
+  type: has_many
+  via: rows[]
+- from: PhaseReading
+  to: PhaseMeta
+  type: belongs_to
+  via: phase -> phases[] enum; label -> labels{} map; currency/tf -> enabled lists
+- from: PhaseResolutionStats
+  to: PhaseMeta
+  type: belongs_to
+  via: keyed on the same 12-value phase enum
+- from: UsageEntry
+  to: PhaseReading
+  type: has_many
+  via: each paid call records the currency x timeframe rows it served
+- from: Balance
+  to: UsageEntry
+  type: has_many
+  via: debits against the prepaid balance appear in the usage log
+notes: >-
+  The spec declares only three named schemas; the rest of the model is inline response shapes, so
+  entity boundaries above follow the response objects. No subway/ render exists.

@@ -1,0 +1,37 @@
+generated: '2026-09-10'
+method: derived
+source: >-
+  openapi/snowsignals-daas-openapi.json (fetched 2026-09-10) + live probes of snowsignals.io
+  (SPA-shell control comparison) + the MCP server surface (initialize, 2026-09-10).
+versioning:
+  style: URL path
+  current: v1
+  evidence: >-
+    Every REST path is served under https://snowsignals.io/v1 (servers[] in the OpenAPI); the OAuth
+    token and registration endpoints are also versioned (/v1/oauth/token, /v1/oauth/register). The
+    MCP surface is versioned by protocol date instead (protocolVersion 2025-06-18, serverInfo
+    version 1.0.0).
+deprecation:
+  policy_published: false
+  deprecated_operations: []
+  evidence: >-
+    No deprecation policy page, no `deprecated: true` on any OpenAPI operation, and no
+    Deprecation/Sunset (RFC 8594) headers documented. The platform is new (MCP registry entry
+    published 2026-09-06), so nothing has been retired yet — but no forward commitment is
+    published either. No Deprecation pointer emitted.
+status_page:
+  published: false
+  evidence: >-
+    No status page is discoverable: /status returns the same 3960-byte SPA shell as an invented
+    control path (probed 2026-09-10), no status.snowsignals.io DNS record is advertised anywhere,
+    and neither llms.txt nor apis.json names one. The nearest runtime-health signal is in-band:
+    metered responses carry a `stale` block (with pollAfterMs) during the upstream candle
+    composition window, and 423 signals a refund-settling spend pause. No StatusPage pointer
+    emitted.
+sla:
+  published: false
+  evidence: No SLA or uptime commitment is published in the contract, llms.txt, or terms surface reachable to a crawler.
+notes: >-
+  Lifecycle posture is honest-but-thin: versioned URLs and an actively versioned MCP protocol, with
+  no published deprecation policy, status page, or SLA. Given the prepaid metering model, the
+  423/`stale` in-band signals are the operational-state surface an agent should watch.

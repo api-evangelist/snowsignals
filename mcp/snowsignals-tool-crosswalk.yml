@@ -1,0 +1,70 @@
+generated: '2026-09-10'
+method: derived
+source: >-
+  snowsignals-mcp-tools-list.json (live tools/list, probed 2026-09-10) bound against
+  openapi/snowsignals-daas-openapi.json (fetched from https://snowsignals.io/v1/openapi.json).
+  The OpenAPI declares no operationIds, so rows bind by METHOD + PATH instead; the x402 worker
+  README (github.com/snowkidind/snowsignals-x402) confirms the REST phase endpoints take comma-list
+  currency/tf, matching the composer tool.
+surfaces:
+  openapi: openapi/snowsignals-daas-openapi.json   # public, ungated fetch
+  mcp: https://snowsignals.io/mcp                  # tools/list anonymous; metered/account tool CALLS gated by OAuth daas:read
+  graphql: null
+coverage:
+  tools: 8
+  tools_mapped: 8
+  rest_operations: 9
+  rest_only: 1
+crosswalk:
+- tool: list_phase_meta
+  category: discovery
+  rest: ["GET /api/phases"]
+  binding: method+path
+  confidence: high
+  note: Both are the free meta surface — phases, labels, tfs, currencies, cards, pricing model. Confirmed by fetching both and matching payloads.
+- tool: phase_resolution_stats
+  category: discovery
+  rest: ["GET /api/phase/resolution-stats"]
+  binding: method+path
+  confidence: high
+- tool: get_notifications
+  category: account
+  rest: ["GET /api/notifications"]
+  binding: method+path
+  confidence: high
+  note: Same category/cursor paging parameters on both surfaces.
+- tool: get_balance
+  category: account
+  rest: ["GET /user/balance"]
+  binding: method+path
+  confidence: high
+- tool: get_usage
+  category: account
+  rest: ["GET /user/usage"]
+  binding: method+path
+  confidence: high
+- tool: deposit_poll
+  category: account
+  rest: ["POST /user/deposit-now"]
+  binding: method+path
+  confidence: high
+  note: Both trigger a deposit-address re-scan; neither moves money.
+- tool: get_phase
+  category: data
+  rest: ["GET /api/phase/boundary", "GET /api/phase/updates"]
+  binding: parameter-fanout
+  confidence: high
+  note: The tool's `kind` argument (boundary|updates) selects between the two REST paths; one currency, tf or 'all'.
+- tool: compose_phases
+  category: data
+  rest: ["GET /api/phase/boundary", "GET /api/phase/updates"]
+  binding: parameter-fanout
+  confidence: high
+  note: Same two paths with comma-list currencies/tfs; billing is per row (currency x tf) on both surfaces.
+mcp_only: []
+rest_only:
+- operation: "GET /api/time"
+  reason: >-
+    Public unmetered clock endpoint used by the REST nonce auth method (strictly-increasing nonce
+    needs a trusted clock). MCP clients authenticate with OAuth bearer, so the tool surface has no
+    need for it.

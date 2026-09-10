@@ -1,0 +1,74 @@
+generated: '2026-09-10'
+method: probed
+source: >-
+  Live MCP tools/call list_phase_meta at https://snowsignals.io/mcp (anonymous, 2026-09-10) — the
+  pricing model is served in-band by the free discovery tool — cross-checked against the pricing
+  prose in the fetched OpenAPI (openapi/snowsignals-daas-openapi.json, info.description).
+summary: >-
+  No subscription tiers exist. The whole commercial model is prepaid, usage-metered pay-as-you-go:
+  an account holds a stablecoin balance (deposits in USDT/USDC on chains such as Base; deposit
+  addresses are listed by /user/balance) and each metered read debits micro-USD per row served.
+  Price discovery is in-band and machine-readable: the free, no-auth list_phase_meta tool (REST:
+  GET /v1/api/phases) returns the live base rate and multiplier tiers, so an agent can compute the
+  exact cost of a call before making it. 402 = out of credits with no partial serve; 423 = spend
+  paused while a refund settles.
+plan_count: 2
+plans:
+- name: Prepaid metered (pay-as-you-go)
+  price: usage-based
+  currency: USD (billed in micro-USD against a prepaid stablecoin balance)
+  billing_period: per call (prepaid balance debit)
+  included_quota: >-
+    Free with no account: list_phase_meta / GET /api/phases (metadata + live pricing),
+    phase_resolution_stats / GET /api/phase/resolution-stats (phase interpretation model), and
+    GET /api/time. Free with an account (unmetered): notifications, balance, usage history,
+    deposit_poll.
+  metering:
+    unit: 'atom: one row (one currency x timeframe) served at the base rate'
+    base_rate_micro_usd: 2314
+    multiplier_tiers:
+    - max_rows: 1
+      factor: 1.25
+    - max_rows: 5
+      factor: 1.15
+    - max_rows: null   # 6 or more rows
+      factor: 1.0
+    formula: debit_micro_usd = round(rows x base_rate_micro_usd x multiplier(rows))
+    example: 'tf=all (6 timeframes, 1 currency) = 6 rows x 2314 x 1.00 = 13884 micro-USD (~$0.014)'
+    billing_notes: >-
+      Cost scales with rows returned, so batching (compose_phases / comma-list currency+tf) is
+      cheaper per row than single reads. Cache hits are billed the same as origin serves
+      (meta.cached is informational). Each response carries meta.debitMicroUsd — the amount
+      actually billed for that request.
+  overage: not applicable — prepaid; requests are refused with 402 when the balance is insufficient
+  limits: per-key rate limit (429 + Retry-After); numeric ceiling unpublished
+- name: x402 pay-per-call (retail gateway)
+  price: usage-based
+  currency: USDC on Base (eip155:8453), quoted per request in atomic units (6 decimals)
+  billing_period: per call — one-time USDC authorization signed against the exact quoted amount
+  included_quota: >-
+    Free with no payment: GET /phases (metadata + live price list) and GET /phase/resolution-stats
+    (interpretation model), both edge-cached. No account, API key, or OAuth needed anywhere on
+    this channel.
+  metering:
+    unit: row (one currency x timeframe), same atom as the prepaid channel
+    observed_quote: >-
+      GET https://pay.snowsignals.io/phase/boundary?currency=BTC&tf=1d answered HTTP 402 on
+      2026-09-10 with an x402 v2 `payment-required` challenge: amount "8679" atomic USDC
+      (~$0.0087) for one row, asset 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913 (USDC, Base),
+      maxTimeoutSeconds 60 — roughly 3x the origin one-row prepaid price (2314 x 1.25 =
+      2892.5 micro-USD), consistent with the retail multiplier the gateway repo describes.
+      Pricing is derived per request from the origin's live pricing model, not hardcoded.
+    billing_notes: >-
+      Settlement runs only after a successful serve (a facilitator error or origin failure does
+      not charge the client); facilitator covers gas, so the paying wallet needs USDC only.
+  overage: not applicable — each call is priced and paid individually
+  limits: edge-cached per row; unpublished
+notes: >-
+  A pricing page URL is not verifiable: snowsignals.io is an SPA that answers 200 with the same
+  site shell for any route, so no Pricing link pointer is emitted; the machine-readable in-band
+  pricing model above is the provider's canonical price surface. The x402 resale gateway
+  (github.com/snowkidind/snowsignals-x402) answered 404 on the morning pass of 2026-09-10 but
+  went LIVE the same day: https://pay.snowsignals.io now serves the free routes (200) and a real
+  x402 v2 challenge (402 + payment-required header) on the metered ones — recorded above and in
+  openapi/snowsignals-x402-openapi.json.

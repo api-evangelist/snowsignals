@@ -1,0 +1,16 @@
+generated: '2026-09-10'
+method: generated
+source: >-
+  Grounded in openapi/snowsignals-daas-openapi.json (fetched from
+  https://snowsignals.io/v1/openapi.json — no operationIds published, so operations are named
+  METHOD + path, with overlay ids from overlays/snowsignals-daas-overlay.yaml), the live MCP
+  tools/list (mcp/snowsignals-mcp-tools-list.json), and llms/snowsignals-llms.txt. No
+  provider-published skills or AGENTS.md exist (checked the site and github.com/snowkidind repos,
+  2026-09-10).
+skills:
+- name: snowsignals-read-market-phase
+  file: snowsignals-read-market-phase.md
+  description: Discover meta free, price the call in-band, read a phase (boundary/updates), interpret it with the free resolution model.
+- name: snowsignals-manage-prepaid-balance
+  file: snowsignals-manage-prepaid-balance.md
+  description: Check balance/holds, nudge deposit detection, audit the paid-call usage log, handle 402/423 billing statuses.

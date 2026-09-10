@@ -1,0 +1,69 @@
+generated: '2026-09-10'
+method: probed
+source: >-
+  Live probes of snowsignals.io discovery documents and the MCP endpoint, 2026-09-10, plus the
+  fetched OpenAPI (openapi/snowsignals-daas-openapi.json).
+conformance:
+- id: oauth2
+  conforms: true
+  evidence: >-
+    Authorization-code + refresh-token grants with PKCE S256, scope daas:read —
+    https://snowsignals.io/.well-known/oauth-authorization-server (HTTP 200, saved to well-known/).
+- id: rfc8414-authorization-server-metadata
+  conforms: true
+  evidence: https://snowsignals.io/.well-known/oauth-authorization-server returned valid AS metadata (issuer, endpoints, grants, PKCE methods).
+- id: rfc9728-protected-resource-metadata
+  conforms: true
+  evidence: >-
+    https://snowsignals.io/.well-known/oauth-protected-resource returned {resource:
+    https://snowsignals.io/mcp, authorization_servers, scopes_supported, bearer_methods_supported}.
+- id: rfc7591-dynamic-client-registration
+  conforms: true
+  evidence: registration_endpoint https://snowsignals.io/v1/oauth/register declared in the AS metadata.
+- id: mcp-streamable-http
+  conforms: true
+  evidence: >-
+    POST https://snowsignals.io/mcp initialize returned protocolVersion 2025-06-18, serverInfo
+    SnowSignals 1.0.0; anonymous tools/list returned 8 tools with JSON Schema inputSchemas
+    (mcp/snowsignals-mcp-tools-list.json). Listed in the official MCP registry as
+    io.snowsignals/snowsignals (active).
+- id: apis-json
+  conforms: true
+  evidence: >-
+    First-party APIs.json (specificationVersion 0.18) served at https://snowsignals.io/apis.json and
+    advertised with a rel="apis.json" link in the page head (saved to well-known/snowsignals-apis-json.json).
+- id: llms-txt
+  conforms: true
+  evidence: https://snowsignals.io/llms.txt served as text/plain and linked with rel="alternate" from the page head (saved to llms/snowsignals-llms.txt).
+- id: pagination
+  conforms: true
+  evidence: >-
+    Cursor pagination on GET /api/notifications (per-category cursors, NotificationPage.rows +
+    cursor) and on usage history (`before` cursor) in the OpenAPI and tools/list schemas.
+- id: rate-limit-signaling
+  conforms: true
+  evidence: OpenAPI documents 429 with a Retry-After header on every phase/notifications operation (per-key; per-IP on the free resolution-stats path).
+- id: x402
+  conforms: true
+  evidence: >-
+    Live x402 v2 payment challenge probed 2026-09-10: GET
+    https://pay.snowsignals.io/phase/boundary?currency=BTC&tf=1d returned HTTP 402 with a
+    base64 `payment-required` header decoding to {x402Version: 2, accepts: [{scheme: exact,
+    network: eip155:8453, amount: "8679", asset: USDC-on-Base, payTo: 0x9273...1518,
+    maxTimeoutSeconds: 60}], extensions.bazaar.routeTemplate: /phase/boundary}. Free routes
+    (/phases, /phase/resolution-stats) answered 200. First-party gateway
+    (github.com/snowkidind/snowsignals-x402; spec at https://x402.snowsignals.io/openapi.json,
+    servers[] pay.snowsignals.io, contact snowsignals.io).
+- id: rfc9457
+  conforms: false
+  evidence: Error responses are plain JSON with per-status prose semantics (400/401/402/423/429); no application/problem+json anywhere in the spec.
+- id: openid-connect
+  conforms: false
+  evidence: /.well-known/openid-configuration returned 404; the AS metadata is plain OAuth 2.0, not OIDC.
+- id: idempotency
+  conforms: false
+  evidence: No Idempotency-Key or equivalent replay mechanism in the OpenAPI or docs; the only POST (deposit-now) moves no money.
+domain_standard_note: >-
+  No domain standard declares itself in the contract: crypto market data has no FIX/FDX-style
+  regime-classification standard shape here, and nothing in the spec carries a standard identifier
+  scheme. Reward-only check — no penalty, none invented.

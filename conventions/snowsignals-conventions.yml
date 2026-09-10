@@ -1,0 +1,61 @@
+generated: '2026-09-10'
+method: derived
+source: >-
+  openapi/snowsignals-daas-openapi.json (fetched 2026-09-10) + https://snowsignals.io/llms.txt +
+  live MCP tools/list; cross-links errors/, authentication/, rate-limits/, lifecycle/.
+auth:
+  style: >-
+    REST: one of two mutually exclusive apiKey methods chosen per account — `url` (?apiKey=<key>
+    query param, key is the whole credential) or `nonce` (Authorization: ApiKey
+    base64(key:nonce:proof), proof = SHA256("secret:nonce") hex truncated to 19 chars, nonce
+    strictly increasing per key). MCP: OAuth 2.0 bearer, scope daas:read, PKCE S256, DCR; two
+    discovery tools are anonymous. Static tokens mintable in the web dashboard for headless setups.
+  detail: authentication/snowsignals-authentication.yml
+  clock_discipline: >-
+    Nonce method only: GET /v1/api/time (public, unmetered) exists to offset a drifting client
+    clock, because a nonce sent from a fast clock permanently outruns a corrected one (401 until an
+    operator resets the key).
+idempotency:
+  coverage: none
+  detail: >-
+    No Idempotency-Key or replay-token mechanism is documented on either surface. The mutating
+    surface is minimal: the only POST, /user/deposit-now (MCP deposit_poll), triggers a re-scan of
+    deposit addresses and moves no money, so repeats are harmless in effect but nothing documents
+    that as a guarantee. Metered GETs debit a prepaid balance per call and a retried read is billed
+    again — there is no replay protection on spend. The nonce auth method's strictly-increasing
+    nonce is replay DEFENSE (a request cannot be replayed by a third party), not idempotency (the
+    client re-signing the same read pays twice).
+pagination:
+  style: cursor
+  surfaces:
+  - operation: GET /api/notifications
+    params: category, cursor
+    response_fields: rows[] (max 10 per category, newest first), per-category cursor
+  - operation: GET /user/usage (MCP get_usage)
+    params: limit, before
+    response_fields: cursor for the previous page, passed back as `before`
+rate_limit_signaling:
+  status: 429
+  headers: [Retry-After]
+  scopes: per-key (authenticated operations), per-IP (free resolution-stats)
+  concurrency: nonce auth method allows one in-flight request per key; batch via compose_phases or use multiple keys
+  detail: rate-limits/snowsignals-rate-limits.yml
+versioning:
+  style: URL path (/v1)
+  detail: lifecycle/snowsignals-lifecycle.yml
+error_envelope:
+  format: plain JSON per status; not RFC 9457
+  billing_statuses: 402 out of credits (no partial serve), 423 refund settling
+  detail: errors/snowsignals-problem-types.yml
+metering:
+  unit: atom (one row = one currency x timeframe served at the base rate)
+  price_discovery: in-band — the pricing model (base rate + multiplier tiers) is served by the free GET /api/phases / list_phase_meta, so cost is computable before any paid call
+  detail: plans/snowsignals-plans-pricing.yml
+reversibility:
+  status: na
+  detail: >-
+    The API has no reversible write surface: every data operation is a read, and the single POST
+    (/user/deposit-now) moves no money and changes no durable state — there is nothing to reverse.
+    Billing reversals exist as an account operation (the 423 status means "a refund is settling")
+    but refunds are operator-mediated, not an API operation, so no reversal operation or window can
+    be recorded. na, not zero: no write surface to grade.

@@ -1,8 +1,16 @@
 name: SnowSignals
-description: 'SnowSignals advertises a crypto market data API and MCP server at snowsignals.io. ACCESS REALITY at
-  listing: the host soft-200s every path (an invented control path returns 200 with the site shell) and no machine-readable
-  contract was discoverable at the declared /v1 or any conventional location, so no spec is recorded and none was
-  reconstructed.'
+description: >-
+  SnowSignals is a crypto market-data platform (data-as-a-service) whose TrendVane product serves
+  multi-timeframe market-phase (regime) classifications — market state, not trade signals — for
+  BTC, ETH, GRAM, SOL and TRX over a metered REST API and a hosted, OAuth-gated MCP server.
+  Pricing is prepaid in stablecoin and served in-band by a free, no-auth discovery call, so an
+  agent can compute the exact cost of a read before spending; a free phase-resolution model
+  (successor-transition probabilities, continuation rates, MFE/MAE) supports interpreting each
+  reading. The platform is deliberately agent-native: first-party llms.txt, self-hosted APIs.json,
+  RFC 8414/9728 OAuth discovery, and an official MCP registry listing. A first-party x402
+  gateway (pay.snowsignals.io, live 2026-09-10) additionally sells the same phase reads
+  pay-per-call in USDC on Base with no account at all.
+image: https://snowsignals.io/og-image.png
 url: https://raw.githubusercontent.com/api-evangelist/snowsignals/refs/heads/main/apis.yml
 created: '2026-09-10'
 modified: '2026-09-10'
@@ -19,36 +27,120 @@ tags:
 - mcp
 - agent-native
 - financial-data
+- x402
 apis:
 - name: SnowSignals API
-  humanURL: https://snowsignals.io
+  description: >-
+    TrendVane daas API — metered, prepaid market-phase reads per currency and timeframe (boundary =
+    settled last closed bar, updates = intra-bar), plus free unmetered metadata (phases, pricing
+    model, server time) and a free BTC-derived phase-resolution statistics model. Auth is one of
+    two mutually exclusive per-account apiKey methods (url query key, or a strictly-increasing
+    nonce signature). The equivalent MCP surface at /mcp exposes the same reads as 8 tools.
+  image: https://snowsignals.io/og-image.png
+  humanURL: https://snowsignals.io/docs
   baseURL: https://snowsignals.io/v1
   tags:
   - Crypto
   - Market Data
   properties:
   - type: Documentation
-    url: https://snowsignals.io
+    url: https://snowsignals.io/docs
+  - type: OpenAPI
+    url: openapi/snowsignals-daas-openapi.json
+  - type: Overlay
+    url: overlays/snowsignals-daas-overlay.yaml
+  - type: MCPServer
+    url: mcp/snowsignals-mcp.yml
+  - type: MCPServer
+    url: https://snowsignals.io/mcp
+  - type: ToolCrosswalk
+    url: mcp/snowsignals-tool-crosswalk.yml
+- name: SnowSignals x402 Gateway
+  description: >-
+    Pay-per-call retail gateway for the same TrendVane phase reads over the x402 payment protocol
+    (v2) — no account, API key, or OAuth anywhere: a metered GET answers 402 with a signed quote
+    (exact amount in USDC on Base, eip155:8453) and the agent pays per request; the free discovery
+    routes (/phases with the live price list, /phase/resolution-stats) need no payment at all.
+    First-party Cloudflare Worker fronting the v1 daas origin as a house account; went live
+    2026-09-10, probed the same day.
+  image: https://snowsignals.io/og-image.png
+  humanURL: https://x402.snowsignals.io
+  baseURL: https://pay.snowsignals.io
+  tags:
+  - Crypto
+  - Market Data
+  - x402
+  properties:
+  - type: Documentation
+    url: https://x402.snowsignals.io
+  - type: OpenAPI
+    url: openapi/snowsignals-x402-openapi.json
+  - type: Overlay
+    url: overlays/snowsignals-x402-overlay.yaml
+  - type: LLMsTxt
+    url: llms/snowsignals-x402-llms.txt
+  - type: GitHubRepository
+    url: https://github.com/snowkidind/snowsignals-x402
 common:
 - type: Website
   url: https://snowsignals.io
+- type: TermsOfService
+  url: https://snowsignals.io/terms
+- type: GitHubRepository
+  url: https://github.com/snowkidind/snowsignals-mcp
+- type: LLMsTxt
+  url: llms/snowsignals-llms.txt
+- type: WellKnown
+  url: well-known/snowsignals-well-known.yml
+- type: MCPServer
+  url: mcp/snowsignals-mcp.yml
+- type: ToolCrosswalk
+  url: mcp/snowsignals-tool-crosswalk.yml
+- type: Authentication
+  url: authentication/snowsignals-authentication.yml
+- type: OAuthScopes
+  url: scopes/snowsignals-scopes.yml
+- type: Conventions
+  url: conventions/snowsignals-conventions.yml
+- type: ErrorCatalog
+  url: errors/snowsignals-problem-types.yml
+- type: Conformance
+  url: conformance/snowsignals-conformance.yml
+- type: Lifecycle
+  url: lifecycle/snowsignals-lifecycle.yml
+- type: Plans
+  url: plans/snowsignals-plans-pricing.yml
+- type: RateLimits
+  url: rate-limits/snowsignals-rate-limits.yml
+- type: DataModel
+  url: data-model/snowsignals-data-model.yml
+- type: AgentSkill
+  url: skills/_index.yml
+- type: DomainSecurity
+  url: security/snowsignals-domain-security.yml
+- type: Packages
+  url: packages/snowsignals-packages.yml
 maintainers:
 - FN: SnowSignals
   url: https://snowsignals.io
-x-coverage:
-  state: partial
-  probed: '2026-09-10'
-  evidence:
-  - url: https://snowsignals.io/
-    status: 200
-  - url: https://snowsignals.io/zzz-control
-    status: 200
-    note: soft-200 -- statuses on this host prove nothing
-  - url: https://snowsignals.io/v1
-    status: 200
-    note: site shell, not JSON
 x-source:
   via: apis.io/add 0cabc61c, parked unverifiable_host; listed by Kin 2026-09-10 on what is served
   fetched: '2026-09-10'
-  note: 'GUARD: do not reconstruct a spec; when a real contract or MCP endpoint surfaces, harvest it and drop this
-    note.'
+  note: >-
+    The round-1 guard ("do not reconstruct a spec") is satisfied and dropped: the real contract
+    surfaced and was harvested the same day — first-party OpenAPI at
+    https://snowsignals.io/v1/openapi.json (200, servers[] snowsignals.io/v1, contact
+    snowsignals.io), live MCP at https://snowsignals.io/mcp (registry io.snowsignals/snowsignals),
+    llms.txt and a self-hosted apis.json both advertised from the page head. The host soft-200s
+    unknown HTML routes (SPA shell), so page pointers here are limited to provider-declared
+    routes; JSON paths return real 404s and were probed honestly.
+x-enrichment:
+  date: '2026-09-10'
+  status: enriched
+  artifacts_added: 4
+  pass: local-v3
+  note: >-
+    Second same-day pass: found the x402 gateway LIVE (it 404d on the morning pass) — saved its
+    first-party OpenAPI + llms.txt from x402.snowsignals.io, recorded the live 402 challenge in
+    plans/ and conformance/, added the legacy npm package inventory (packages/), and registered
+    the gateway as a second API entry.

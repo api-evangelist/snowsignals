@@ -1,0 +1,57 @@
+overlay: 1.0.0
+info:
+  title: SnowSignals daas API — API Evangelist enhancement overlay
+  version: 1.0.0
+x-generated: '2026-09-10'
+x-method: generated
+x-source: >-
+  Extends openapi/snowsignals-daas-openapi.json (fetched verbatim from
+  https://snowsignals.io/v1/openapi.json, 2026-09-10, and left unmodified). The published spec
+  declares no operationIds and no tags; this overlay adds stable operationIds (matching the names
+  used by mcp/snowsignals-tool-crosswalk.yml and skills/) and functional tags, without touching
+  provider-authored content.
+extends: ../openapi/snowsignals-daas-openapi.json
+actions:
+- target: $.paths['/api/phases'].get
+  update:
+    operationId: listPhaseMeta
+    tags: [discovery]
+- target: $.paths['/api/phase/resolution-stats'].get
+  update:
+    operationId: getPhaseResolutionStats
+    tags: [discovery]
+- target: $.paths['/api/time'].get
+  update:
+    operationId: getServerTime
+    tags: [discovery]
+- target: $.paths['/api/phase/boundary'].get
+  update:
+    operationId: getPhaseBoundary
+    tags: [phase-data]
+- target: $.paths['/api/phase/updates'].get
+  update:
+    operationId: getPhaseUpdates
+    tags: [phase-data]
+- target: $.paths['/api/notifications'].get
+  update:
+    operationId: listNotifications
+    tags: [account]
+- target: $.paths['/user/balance'].get
+  update:
+    operationId: getBalance
+    tags: [account]
+- target: $.paths['/user/usage'].get
+  update:
+    operationId: getUsage
+    tags: [account]
+- target: $.paths['/user/deposit-now'].post
+  update:
+    operationId: depositPoll
+    tags: [account]
+- target: $.info
+  update:
+    x-agent-notes: >-
+      Free, no-auth entry points: listPhaseMeta (includes the live pricing model — compute cost
+      before any paid call), getPhaseResolutionStats, getServerTime. Metered reads debit a prepaid
+      stablecoin balance per row; 402 = out of credits (no partial serve), 423 = refund settling,
+      429 carries Retry-After. See conventions/snowsignals-conventions.yml.

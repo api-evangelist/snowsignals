@@ -1,0 +1,29 @@
+overlay: 1.0.0
+info:
+  title: SnowSignals x402 gateway — API Evangelist enhancement overlay
+  version: 1.0.0
+x-generated: '2026-09-10'
+x-method: generated
+x-source: >-
+  Extends openapi/snowsignals-x402-openapi.json (fetched verbatim from
+  https://x402.snowsignals.io/openapi.json, 2026-09-10, and left unmodified). The published spec
+  declares no operationIds and no tags; this overlay adds stable operationIds and functional tags,
+  mirroring overlays/snowsignals-daas-overlay.yaml, without touching provider-authored content.
+extends: ../openapi/snowsignals-x402-openapi.json
+actions:
+- target: $.paths['/phases'].get
+  update:
+    operationId: x402ListPhaseMeta
+    tags: [discovery]
+- target: $.paths['/phase/resolution-stats'].get
+  update:
+    operationId: x402GetPhaseResolutionStats
+    tags: [discovery]
+- target: $.paths['/phase/boundary'].get
+  update:
+    operationId: x402GetPhaseBoundary
+    tags: [phases]
+- target: $.paths['/phase/updates'].get
+  update:
+    operationId: x402GetPhaseUpdates
+    tags: [phases]
