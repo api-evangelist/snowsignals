@@ -1,0 +1,54 @@
+name: SnowSignals
+description: 'SnowSignals advertises a crypto market data API and MCP server at snowsignals.io. ACCESS REALITY at
+  listing: the host soft-200s every path (an invented control path returns 200 with the site shell) and no machine-readable
+  contract was discoverable at the declared /v1 or any conventional location, so no spec is recorded and none was
+  reconstructed.'
+url: https://raw.githubusercontent.com/api-evangelist/snowsignals/refs/heads/main/apis.yml
+created: '2026-09-10'
+modified: '2026-09-10'
+specificationVersion: '0.21'
+tags:
+- crypto
+- market-data
+- bitcoin
+- analytics
+- market-phase
+- regime
+- trendvane
+- daas
+- mcp
+- agent-native
+- financial-data
+apis:
+- name: SnowSignals API
+  humanURL: https://snowsignals.io
+  baseURL: https://snowsignals.io/v1
+  tags:
+  - Crypto
+  - Market Data
+  properties:
+  - type: Documentation
+    url: https://snowsignals.io
+common:
+- type: Website
+  url: https://snowsignals.io
+maintainers:
+- FN: SnowSignals
+  url: https://snowsignals.io
+x-coverage:
+  state: partial
+  probed: '2026-09-10'
+  evidence:
+  - url: https://snowsignals.io/
+    status: 200
+  - url: https://snowsignals.io/zzz-control
+    status: 200
+    note: soft-200 -- statuses on this host prove nothing
+  - url: https://snowsignals.io/v1
+    status: 200
+    note: site shell, not JSON
+x-source:
+  via: apis.io/add 0cabc61c, parked unverifiable_host; listed by Kin 2026-09-10 on what is served
+  fetched: '2026-09-10'
+  note: 'GUARD: do not reconstruct a spec; when a real contract or MCP endpoint surfaces, harvest it and drop this
+    note.'
