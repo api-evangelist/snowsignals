@@ -2,16 +2,20 @@ generated: '2026-09-10'
 method: probed
 status: published
 source: https://snowsignals.io/mcp (live initialize + tools/list, anonymous, 2026-09-10)
-registry_listing: >-
-  Official MCP registry entry io.snowsignals/snowsignals, status active, published 2026-09-06
-  (registry.modelcontextprotocol.io/v0/servers?search=snowsignals) — remote streamable-http at
-  https://snowsignals.io/mcp. Also listed on mcpservers.org/servers/snowkidind/snowsignals-mcp.
-repo: https://github.com/snowkidind/snowsignals-mcp   # connection guide + manifest only; no server code — hosted-only by design
+registry_listing: Official MCP registry entry io.snowsignals/snowsignals, status active, published 2026-09-06
+  (registry.modelcontextprotocol.io/v0/servers?search=snowsignals) — remote streamable-http at https://snowsignals.io/mcp.
+  Also listed on mcpservers.org/servers/snowkidind/snowsignals-mcp.
+repo: https://github.com/snowkidind/snowsignals-mcp
 deployment:
   mode: remote
   endpoint: https://snowsignals.io/mcp
-  auth: oauth          # metered/account tools only; two discovery tools are anonymous
-  verified: probed     # initialize returned serverInfo SnowSignals 1.0.0, protocol 2025-06-18; tools/list returned 8 tools with inputSchemas, no auth
+  auth: oauth
+  verified: probed
+  probe_prior: (never probed)
+  probe: live
+  probe_why: live
+  checked: '2026-09-11'
+  source: claimed-backlog re-probe 2026-09-11
 server:
   name: SnowSignals
   version: 1.0.0
@@ -20,8 +24,8 @@ server:
   url: https://snowsignals.io/mcp
 auth:
   methods:
-  - none          # list_phase_meta, phase_resolution_stats — free, no account
-  - oauth2        # scope daas:read for metered/account tools; static token mintable in the web dashboard for headless setups
+  - none
+  - oauth2
   oauth2:
     authorization_server: https://snowsignals.io
     scopes_supported:
@@ -33,29 +37,32 @@ auth:
     dynamic_client_registration: https://snowsignals.io/v1/oauth/register
     discovery: ../well-known/snowsignals-oauth-authorization-server.json
     protected_resource: ../well-known/snowsignals-oauth-protected-resource.json
-pricing: >-
-  Metered per call from a prepaid stablecoin balance. Pricing model is served in-band by
-  list_phase_meta: base rate 2314 micro-USD per row (currency x timeframe), multiplier 1.25 for 1
-  row, 1.15 for 2-5, 1.00 for 6+. See ../plans/snowsignals-plans-pricing.yml.
+pricing: 'Metered per call from a prepaid stablecoin balance. Pricing model is served in-band by list_phase_meta:
+  base rate 2314 micro-USD per row (currency x timeframe), multiplier 1.25 for 1 row, 1.15 for 2-5, 1.00
+  for 6+. See ../plans/snowsignals-plans-pricing.yml.'
 tool_count: 8
-tools_list_capture: snowsignals-mcp-tools-list.json   # verbatim tools/list result with full inputSchemas
+tools_list_capture: snowsignals-mcp-tools-list.json
 tools:
 - name: list_phase_meta
   category: discovery
   auth: none
-  description: Free, no account. Lists phases, timeframes, currencies, a card per phase, and the live pricing model so an agent can price a paid call before making it.
+  description: Free, no account. Lists phases, timeframes, currencies, a card per phase, and the live
+    pricing model so an agent can price a paid call before making it.
 - name: phase_resolution_stats
   category: discovery
   auth: none
-  description: Free. Per-phase successor-transition probabilities, trend-continuation rates, and MFE/MAE reward-vs-drawdown, each with its sample count (BTC research model, 2022-2026 regime).
+  description: Free. Per-phase successor-transition probabilities, trend-continuation rates, and MFE/MAE
+    reward-vs-drawdown, each with its sample count (BTC research model, 2022-2026 regime).
 - name: get_notifications
   category: account
   auth: oauth2 (daas:read)
-  description: Read-only account messages (support, billing, account notices), cursor-paged per category. Never marks anything read.
+  description: Read-only account messages (support, billing, account notices), cursor-paged per category.
+    Never marks anything read.
 - name: get_balance
   category: account
   auth: oauth2 (daas:read)
-  description: Prepaid balance, holds, bonus credit and expiry, pause state, current pricing, and the deposit addresses on the account.
+  description: Prepaid balance, holds, bonus credit and expiry, pause state, current pricing, and the
+    deposit addresses on the account.
 - name: get_usage
   category: account
   auth: oauth2 (daas:read)
@@ -63,17 +70,19 @@ tools:
 - name: deposit_poll
   category: account
   auth: oauth2 (daas:read)
-  description: Nudges the system to re-scan deposit addresses after a stablecoin deposit. Moves no money; free.
+  description: Nudges the system to re-scan deposit addresses after a stablecoin deposit. Moves no money;
+    free.
 - name: get_phase
   category: data (metered)
   auth: oauth2 (daas:read)
-  description: Current market phase for one currency across timeframes; kind=boundary (settled last closed bar) or updates (intra-bar). Required args currency, kind.
+  description: Current market phase for one currency across timeframes; kind=boundary (settled last closed
+    bar) or updates (intra-bar). Required args currency, kind.
 - name: compose_phases
   category: data (metered)
   auth: oauth2 (daas:read)
-  description: Phases for several currencies and timeframes in one call; cost scales with rows returned (currencies x tfs). Required args currencies, tfs, kind.
-notes: >-
-  A third-party-shaped but first-party-published resale path also exists: snowkidind/snowsignals-x402,
-  a Cloudflare Worker reselling phase reads per call over x402 (USDC on Base), intended for
-  pay.snowsignals.io — that host currently answers 404 (probed 2026-09-10), so it is not yet a live
-  surface and no pointer is emitted for it.
+  description: Phases for several currencies and timeframes in one call; cost scales with rows returned
+    (currencies x tfs). Required args currencies, tfs, kind.
+notes: 'A third-party-shaped but first-party-published resale path also exists: snowkidind/snowsignals-x402,
+  a Cloudflare Worker reselling phase reads per call over x402 (USDC on Base), intended for pay.snowsignals.io
+  — that host currently answers 404 (probed 2026-09-10), so it is not yet a live surface and no pointer
+  is emitted for it.'
