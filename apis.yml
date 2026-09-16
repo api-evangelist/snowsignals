@@ -16,6 +16,19 @@ created: '2026-09-10'
 modified: '2026-09-10'
 specificationVersion: '0.21'
 tags:
+- Crypto
+- Market Data
+- Bitcoin
+- Analytics
+- market-phase
+- regime
+- trendvane
+- DaaS
+- MCP
+- agent-native
+- Financial Data
+- x402
+tags_raw:
 - crypto
 - market-data
 - bitcoin
@@ -29,59 +42,113 @@ tags:
 - financial-data
 - x402
 apis:
-- name: SnowSignals API
-  description: >-
-    TrendVane daas API — metered, prepaid market-phase reads per currency and timeframe (boundary =
-    settled last closed bar, updates = intra-bar), plus free unmetered metadata (phases, pricing
-    model, server time) and a free BTC-derived phase-resolution statistics model. Auth is one of
-    two mutually exclusive per-account apiKey methods (url query key, or a strictly-increasing
-    nonce signature). The equivalent MCP surface at /mcp exposes the same reads as 8 tools.
-  image: https://snowsignals.io/og-image.png
+- aid: snowsignals:snowsignals-notifications-api
+  name: SnowSignals Notifications API
+  description: The Notifications API from SnowSignals — 1 operation(s) for notifications.
   humanURL: https://snowsignals.io/docs
   baseURL: https://snowsignals.io/v1
   tags:
-  - Crypto
-  - Market Data
+  - Notifications
   properties:
+  - type: OpenAPI
+    url: openapi/snowsignals-notifications-api-openapi.yml
   - type: Documentation
     url: https://snowsignals.io/docs
-  - type: OpenAPI
-    url: openapi/snowsignals-daas-openapi.json
-  - type: Overlay
-    url: overlays/snowsignals-daas-overlay.yaml
-  - type: MCPServer
-    url: mcp/snowsignals-mcp.yml
-  - type: MCPServer
-    url: https://snowsignals.io/mcp
   - type: ToolCrosswalk
     url: mcp/snowsignals-tool-crosswalk.yml
-- name: SnowSignals x402 Gateway
-  description: >-
-    Pay-per-call retail gateway for the same TrendVane phase reads over the x402 payment protocol
-    (v2) — no account, API key, or OAuth anywhere: a metered GET answers 402 with a signed quote
-    (exact amount in USDC on Base, eip155:8453) and the agent pays per request; the free discovery
-    routes (/phases with the live price list, /phase/resolution-stats) need no payment at all.
-    First-party Cloudflare Worker fronting the v1 daas origin as a house account; went live
-    2026-09-10, probed the same day.
-  image: https://snowsignals.io/og-image.png
-  humanURL: https://x402.snowsignals.io
-  baseURL: https://pay.snowsignals.io
-  tags:
-  - Crypto
-  - Market Data
-  - x402
-  properties:
   - type: Documentation
     url: https://x402.snowsignals.io
+  - type: LLMsTxt
+    url: llms/snowsignals-x402-llms.txt
+  - type: GitHubRepository
+    url: https://github.com/snowkidind/snowsignals-x402
+- aid: snowsignals:snowsignals-phase-api
+  name: SnowSignals Phase API
+  description: The Phase API from SnowSignals — 6 operation(s) for phase.
+  humanURL: https://snowsignals.io/docs
+  baseURL: https://snowsignals.io/v1
+  tags:
+  - Phase
+  properties:
   - type: OpenAPI
-    url: openapi/snowsignals-x402-openapi.json
-  - type: Overlay
-    url: overlays/snowsignals-x402-overlay.yaml
+    url: openapi/snowsignals-phase-api-openapi.yml
+  - type: Documentation
+    url: https://snowsignals.io/docs
+  - type: ToolCrosswalk
+    url: mcp/snowsignals-tool-crosswalk.yml
+  - type: Documentation
+    url: https://x402.snowsignals.io
+  - type: LLMsTxt
+    url: llms/snowsignals-x402-llms.txt
+  - type: GitHubRepository
+    url: https://github.com/snowkidind/snowsignals-x402
+- aid: snowsignals:snowsignals-phases-api
+  name: SnowSignals Phases API
+  description: The Phases API from SnowSignals — 2 operation(s) for phases.
+  humanURL: https://snowsignals.io/docs
+  baseURL: https://snowsignals.io/v1
+  tags:
+  - Phases
+  properties:
+  - type: OpenAPI
+    url: openapi/snowsignals-phases-api-openapi.yml
+  - type: Documentation
+    url: https://snowsignals.io/docs
+  - type: ToolCrosswalk
+    url: mcp/snowsignals-tool-crosswalk.yml
+  - type: Documentation
+    url: https://x402.snowsignals.io
+  - type: LLMsTxt
+    url: llms/snowsignals-x402-llms.txt
+  - type: GitHubRepository
+    url: https://github.com/snowkidind/snowsignals-x402
+- aid: snowsignals:snowsignals-time-api
+  name: SnowSignals Time API
+  description: The Time API from SnowSignals — 1 operation(s) for time.
+  humanURL: https://snowsignals.io/docs
+  baseURL: https://snowsignals.io/v1
+  tags:
+  - Time
+  properties:
+  - type: OpenAPI
+    url: openapi/snowsignals-time-api-openapi.yml
+  - type: Documentation
+    url: https://snowsignals.io/docs
+  - type: ToolCrosswalk
+    url: mcp/snowsignals-tool-crosswalk.yml
+  - type: Documentation
+    url: https://x402.snowsignals.io
+  - type: LLMsTxt
+    url: llms/snowsignals-x402-llms.txt
+  - type: GitHubRepository
+    url: https://github.com/snowkidind/snowsignals-x402
+- aid: snowsignals:snowsignals-user-api
+  name: SnowSignals User API
+  description: The User API from SnowSignals — 3 operation(s) for user.
+  humanURL: https://snowsignals.io/docs
+  baseURL: https://snowsignals.io/v1
+  tags:
+  - User
+  properties:
+  - type: OpenAPI
+    url: openapi/snowsignals-user-api-openapi.yml
+  - type: Documentation
+    url: https://snowsignals.io/docs
+  - type: ToolCrosswalk
+    url: mcp/snowsignals-tool-crosswalk.yml
+  - type: Documentation
+    url: https://x402.snowsignals.io
   - type: LLMsTxt
     url: llms/snowsignals-x402-llms.txt
   - type: GitHubRepository
     url: https://github.com/snowkidind/snowsignals-x402
 common:
+- type: Overlay
+  url: overlays/snowsignals-daas-overlay.yaml
+- type: MCPServer
+  url: https://snowsignals.io/mcp
+- type: Overlay
+  url: overlays/snowsignals-x402-overlay.yaml
 - type: Website
   url: https://snowsignals.io
 - type: TermsOfService
