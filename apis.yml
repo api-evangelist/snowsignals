@@ -48,6 +48,8 @@ apis:
   humanURL: https://snowsignals.io/docs
   baseURL: https://snowsignals.io/v1
   tags:
+  - Notification
+  tags_raw:
   - Notifications
   properties:
   - type: OpenAPI
