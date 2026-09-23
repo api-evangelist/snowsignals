@@ -1,0 +1,233 @@
+openapi: 3.2.0
+info:
+  title: SnowSignals daas User API
+  version: 1.0.0
+  description: Metered, prepaid Phase-Event data.
+  contact:
+    name: SnowSignals
+    url: https://snowsignals.io
+  termsOfService: https://snowsignals.io/terms
+servers:
+- url: https://snowsignals.io/v1
+security:
+- UrlKey: []
+- ApiKey: []
+tags:
+- name: User
+paths:
+  /user/balance:
+    get:
+      summary: The account's spendable/refundable balance + atom display (session or ApiKey…
+      responses:
+        '200':
+          description: Balance view. Amounts are micro-USD (1e-6 USD).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  spendable_micro_usd:
+                    type: integer
+                    description: Balance available to spend on metered requests.
+                    example: 4958060
+                  refundable_micro_usd:
+                    type: integer
+                    description: Amount currently in a refund/withdrawal hold.
+                    example: 0
+                  spendPaused:
+                    type: boolean
+                    description: True while a refund is settling (requests return 423).
+                    example: false
+                  base_rate_micro_usd:
+                    type: integer
+                    description: Price of one atom (base rate).
+                    example: 2314
+                  atoms:
+                    type: integer
+                    description: Spendable balance expressed in whole atoms (floor(spendable / base rate)).
+                    example: 2142
+                  multiplier_tiers:
+                    type: array
+                    description: The request-composition multiplier tiers. A request pays the factor for the tier its row count falls in; a null max_rows is the open-ended top tier. Same tiers the meter charges through, so you can price a call from here.
+                    items:
+                      type: object
+                      properties:
+                        max_rows:
+                          type: integer
+                          nullable: true
+                          description: Top of the tier (rows), or null for no upper bound.
+                          example: 5
+                        factor:
+                          type: number
+                          description: Multiplier applied at this tier.
+                          example: 1.15
+                  deposit_addresses:
+                    type: array
+                    description: Your standing per-chain deposit addresses. You set these up from the dashboard.
+                    items:
+                      type: object
+                      properties:
+                        chain:
+                          type: string
+                          example: base
+                        address:
+                          type: string
+                          example: 0x1234abcd...ef90
+              example:
+                spendable_micro_usd: 4958060
+                refundable_micro_usd: 0
+                spendPaused: false
+                base_rate_micro_usd: 2314
+                atoms: 2142
+                multiplier_tiers:
+                - max_rows: 1
+                  factor: 1.25
+                - max_rows: 5
+                  factor: 1.15
+                - max_rows: null
+                  factor: 1
+                deposit_addresses:
+                - chain: base
+                  address: 0x1234abcd...ef90
+        '401':
+          description: Unauthorized.
+      tags:
+      - User
+      operationId: getUserBalance
+      x-operation-id-source: derived
+  /user/usage:
+    get:
+      summary: The indexed usage log (id-cursor paginated via `before`)
+      parameters:
+      - name: limit
+        in: query
+        schema:
+          type: integer
+      - name: before
+        in: query
+        schema:
+          type: integer
+        description: id cursor from a prior page's nextBefore.
+      responses:
+        '200':
+          description: Usage rows (newest first) + nextBefore cursor.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rows:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        createdAt:
+                          type: string
+                          format: date-time
+                          example: '2026-07-14T17:11:45.732Z'
+                        endpoint:
+                          type: string
+                          description: The metered endpoint (or `/mcp:<tool>` for MCP calls).
+                          example: /v1/api/phase/boundary
+                        currencies:
+                          type: string
+                          description: Comma-joined currencies served.
+                          example: BTC
+                        tfs:
+                          type: string
+                          description: Comma-joined timeframes served.
+                          example: 1h
+                        rows:
+                          type: integer
+                          example: 1
+                        multiplier:
+                          type: number
+                          description: Row-count pricing multiplier applied.
+                          example: 1.25
+                        debitMicroUsd:
+                          type: integer
+                          example: 1446
+                  nextBefore:
+                    type:
+                    - integer
+                    - 'null'
+                    description: id cursor for the next (older) page, or null when no older rows remain.
+                    example: 4
+              example:
+                rows:
+                - createdAt: '2026-07-14T17:11:45.732Z'
+                  endpoint: /v1/api/phase/boundary
+                  currencies: BTC
+                  tfs: 1h
+                  rows: 1
+                  multiplier: 1.25
+                  debitMicroUsd: 1446
+                - createdAt: '2026-07-14T17:11:45.724Z'
+                  endpoint: /v1/api/phase/updates
+                  currencies: BTC,ETH,GRAM,SOL,TRX
+                  tfs: 15m,1h,2h,4h,1d,1w
+                  rows: 30
+                  multiplier: 1
+                  debitMicroUsd: 34710
+                nextBefore: 4
+        '401':
+          description: Unauthorized.
+      tags:
+      - User
+      operationId: getUserUsage
+      x-operation-id-source: derived
+  /user/deposit-now:
+    post:
+      summary: Prod the system to check for a deposit (session or ApiKey auth)
+      description: Ask the deposit watcher to scan your standing deposit addresses now, so a deposit you have just sent is picked up sooner instead of waiting for the next routine scan. It arms a watch on every standing address and enabled token, and returns what was armed. If the account has no standing address on file, the armed list comes back empty. This is the REST twin of the MCP deposit_poll tool; both run the same arming path. Unmetered.
+      responses:
+        '200':
+          description: What was armed. Empty when the account has no standing deposit address on file.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  armed:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        chain:
+                          type: string
+                          example: BASE
+                        address:
+                          type: string
+                          example: 0x1234abcd...ef90
+                        token:
+                          type: string
+                          example: USDC
+              example:
+                armed:
+                - chain: BASE
+                  address: 0x1234abcd...ef90
+                  token: USDC
+                - chain: BASE
+                  address: 0x1234abcd...ef90
+                  token: USDT
+        '401':
+          description: Unauthorized.
+      tags:
+      - User
+      operationId: postUserDepositNow
+      x-operation-id-source: derived
+components:
+  securitySchemes:
+    UrlKey:
+      type: apiKey
+      in: query
+      name: apiKey
+      description: 'url method (default): pass your key as `?apiKey=<key>`. The key is the whole credential.'
+    ApiKey:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: 'nonce method: `ApiKey base64(key:nonce:proof)` where `proof = SHA256("secret:nonce")` hex truncated to 19 chars (see the API description for the signing scheme).'
+x-apisguru-categories:
+- financial
+- analytics

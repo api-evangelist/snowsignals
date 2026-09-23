@@ -1,0 +1,203 @@
+openapi: 3.2.0
+info:
+  title: Snowsignals Phases API
+  version: 1.0.0
+  contact:
+    name: SnowSignals
+    url: https://snowsignals.io
+  description: 'Operations tagged Phases across 2 of this provider''s published API definitions: snowsignals-daas-openapi.json, snowsignals-x402-openapi.json. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://snowsignals.io/v1
+- url: https://pay.snowsignals.io
+tags:
+- name: Phases
+paths:
+  /api/phases:
+    get:
+      security: []
+      summary: 'Public, unmetered metadata: the 12-value phase enum + labels + enabled…'
+      responses:
+        '200':
+          description: Metadata. `about` is the model-provenance summary; `cards` gives one definition card per phase (role, market-terms meaning, typical successors).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  phases:
+                    type: array
+                    items:
+                      type: string
+                  labels:
+                    type: object
+                    additionalProperties:
+                      type: string
+                  tfs:
+                    type: array
+                    items:
+                      type: string
+                  currencies:
+                    type: array
+                    items:
+                      type: string
+                  about:
+                    type: string
+                    description: Model-provenance summary (Moving Average Graphical Analysis).
+                  cards:
+                    type: array
+                    description: One definition card per phase.
+                    items:
+                      type: object
+                      properties:
+                        base:
+                          type: string
+                        code:
+                          type: string
+                        label:
+                          type: string
+                        variants:
+                          type: object
+                          properties:
+                            bull:
+                              type: string
+                            bear:
+                              type: string
+                        role:
+                          type: string
+                        definition:
+                          type: string
+                        successors:
+                          type: string
+              example:
+                phases:
+                - establishing_bull
+                - establishing_bear
+                - running_reentry_bull
+                - running_reentry_bear
+                - running_first_bull
+                - running_first_bear
+                - consolidating_bull
+                - consolidating_bear
+                - running_post_fe_bull
+                - running_post_fe_bear
+                - breaking_bull
+                - breaking_bear
+                labels:
+                  establishing_bull: Establishing Bull
+                  establishing_bear: Establishing Bear
+                  running_reentry_bull: Running Re-entry Bull
+                  running_reentry_bear: Running Re-entry Bear
+                  running_first_bull: Running First Bull
+                  running_first_bear: Running First Bear
+                  consolidating_bull: Consolidating Bull
+                  consolidating_bear: Consolidating Bear
+                  running_post_fe_bull: Running Post-FE Bull
+                  running_post_fe_bear: Running Post-FE Bear
+                  breaking_bull: Breaking Bull
+                  breaking_bear: Breaking Bear
+                tfs:
+                - 15m
+                - 1h
+                - 2h
+                - 4h
+                - 1d
+                - 1w
+                currencies:
+                - BTC
+                - ETH
+                - GRAM
+                - SOL
+                - TRX
+                about: "TrendVane, SnowSignals' market-phase product, labels phases using a method called Moving Average Graphical Analysis, which uses measurement of fixed coordinates on a plotted graph. The author Keny Ruyter (aka Snowkid) developed the method and nomenclature. On each timeframe the model tracks a fast and a slow moving average of closed-candle price. Where they cross sets the directional bearing (bull/bear); the space between them, the \"channel\", is measured as it forms, widens, flattens, expands, or collapses. Then, the phase model collects these into probabilistic channel states, which are called phases. Each has an inverse, Bull or Bear:\n- Establishing: fresh crossover; trend not yet proven.\n- Running-First: channel established; first real leg underway.\n- Consolidating: channel flattened; a pause where the next data decides.\n- Re-entry: a second push in the trend direction after a consolidation.\n- Post-FE: (Post Flatted Expansion) a flattened channel re-expands into a continuation leg; rarest, highest-magnitude state.\n- Breaking: channel collapsing; the decisive reverse-or-continue point.\nEach phase is computed deterministically from closed candles, independently per timeframe and currency. If you want the backtested numbers to read at face value, use the 4h and 1d, where price action holds steady enough to form clean moving-average channels. Faster timeframes flip more often and swing rougher, 15m most of all, but they compute the same way and are just as valid to read. The short ones trade some stability for speed; if that's the trade you want, the live updates track the bar as it forms. Use cases: \n- Multi timeframe analysis\n- Higher timeframe wisdom\n- Current market regime\n- Confluence for your TA\n- Decision making the old fashioned way"
+                cards:
+                - base: establishing
+                  code: EST
+                  label: Establishing
+                  variants:
+                    bull: establishing_bull
+                    bear: establishing_bear
+                  role: deciding a side
+                  definition: A fresh crossover where the trend is not yet proven; price typically alternates bull/bear for several rounds before committing to a side. The first Establishing of a cycle follows a counter-trend event.
+                  successors: Most often commits to a first leg (→ Running-First, same side); otherwise never commits and flips back to the opposite side.
+                - base: running_first
+                  code: RF
+                  label: Running-First
+                  variants:
+                    bull: running_first_bull
+                    bear: running_first_bear
+                  role: first real leg
+                  definition: The first real move just above Establishing's noise floor. Channels are short and often pull back; the trend usually decides its direction here.
+                  successors: Commonly relaxes back to same-side Establishing (the leg gives up and re-decides) or matures into a Consolidating pause; can also fail and flip.
+                - base: consolidating
+                  code: CON
+                  label: Consolidating
+                  variants:
+                    bull: consolidating_bull
+                    bear: consolidating_bear
+                  role: the pause
+                  definition: The trend is established; this state defines the flow; a pause between pushes. Longer consolidations tend to alternate with shorter running legs.
+                  successors: Most often the pause breaks (→ Breaking, the most common exit); otherwise takes another swing (→ Re-entry) or collapses back to Establishing.
+                - base: running_reentry
+                  code: REE
+                  label: Re-entry
+                  variants:
+                    bull: running_reentry_bull
+                    bear: running_reentry_bear
+                  role: another push
+                  definition: A second push in the trend direction after a consolidation decided to continue; puts more time on the clock, and higher-timeframe agreement can extend it.
+                  successors: Usually settles into another Consolidating pause, or breaks out of the push (→ Breaking).
+                - base: running_post_fe
+                  code: PFE
+                  label: Post-FE
+                  variants:
+                    bull: running_post_fe_bull
+                    bear: running_post_fe_bear
+                  role: continuation leg
+                  definition: A flattened channel's moving averages re-expand into a fresh continuation leg (Post Flatted Expansion). The rarest state, and historically the widest favorable-to-adverse excursion of the set.
+                  successors: One more Consolidating pause before a final break, or straight to Breaking.
+                - base: breaking
+                  code: BRK
+                  label: Breaking
+                  variants:
+                    bull: breaking_bull
+                    bear: breaking_bear
+                  role: decision node
+                  definition: The decisive point where the trend reverses or consolidates into a continuation, typically volatile, and can move sharply counter-trend.
+                  successors: Most often resets to Establishing on the opposite side; can flip into a fresh opposite-direction trend, extend into another consolidation, or (rarely) continue cleanly (→ Post-FE).
+      tags:
+      - Phases
+      operationId: getApiPhases
+      x-operation-id-source: derived
+    servers:
+    - url: https://snowsignals.io/v1
+  /phases:
+    get:
+      summary: Metadata + price list (free)
+      description: Enabled currencies, timeframes, phase labels, and the live pricing model. Free, no payment.
+      responses:
+        '200':
+          description: Metadata document
+      tags:
+      - Phases
+      operationId: getPhases
+      x-operation-id-source: derived
+    servers:
+    - url: https://pay.snowsignals.io
+components:
+  securitySchemes:
+    UrlKey:
+      type: apiKey
+      in: query
+      name: apiKey
+      description: 'url method (default): pass your key as `?apiKey=<key>`. The key is the whole credential.'
+    ApiKey:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: 'nonce method: `ApiKey base64(key:nonce:proof)` where `proof = SHA256("secret:nonce")` hex truncated to 19 chars (see the API description for the signing scheme).'
+x-refined-from:
+- snowsignals-daas-openapi.json
+- snowsignals-x402-openapi.json
+x-apisguru-categories:
+- financial
+- analytics

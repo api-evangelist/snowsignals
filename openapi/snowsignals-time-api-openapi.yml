@@ -1,0 +1,58 @@
+openapi: 3.2.0
+info:
+  title: SnowSignals daas Time API
+  version: 1.0.0
+  description: Metered, prepaid Phase-Event data.
+  contact:
+    name: SnowSignals
+    url: https://snowsignals.io
+  termsOfService: https://snowsignals.io/terms
+servers:
+- url: https://snowsignals.io/v1
+security:
+- UrlKey: []
+- ApiKey: []
+tags:
+- name: Time
+paths:
+  /api/time:
+    get:
+      summary: Server clock in epoch ms; public, unmetered. Use it to keep your nonce ahead
+      description: 'Compare to your local `Date.now()` and offset your nonce by the difference.
+
+
+        A clock running **fast** is a one-way trap: the nonce it sends is stored, and once corrected every nonce you can produce is lower than the stored one, so the key `401`s until an operator resets it. Checking here first is how you avoid needing that.'
+      security: []
+      responses:
+        '200':
+          description: Current server time.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  serverTime:
+                    type: integer
+                    format: int64
+                    description: Server clock, milliseconds since the Unix epoch (UTC).
+              example:
+                serverTime: 1784110769783
+      tags:
+      - Time
+      operationId: getApiTime
+      x-operation-id-source: derived
+components:
+  securitySchemes:
+    UrlKey:
+      type: apiKey
+      in: query
+      name: apiKey
+      description: 'url method (default): pass your key as `?apiKey=<key>`. The key is the whole credential.'
+    ApiKey:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: 'nonce method: `ApiKey base64(key:nonce:proof)` where `proof = SHA256("secret:nonce")` hex truncated to 19 chars (see the API description for the signing scheme).'
+x-apisguru-categories:
+- financial
+- analytics

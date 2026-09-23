@@ -1,0 +1,133 @@
+openapi: 3.2.0
+info:
+  title: SnowSignals daas Notifications API
+  version: 1.0.0
+  description: Metered, prepaid Phase-Event data.
+  contact:
+    name: SnowSignals
+    url: https://snowsignals.io
+  termsOfService: https://snowsignals.io/terms
+servers:
+- url: https://snowsignals.io/v1
+security:
+- UrlKey: []
+- ApiKey: []
+tags:
+- name: Notifications
+paths:
+  /api/notifications:
+    get:
+      summary: Read-only notification feed (unmetered).
+      security:
+      - UrlKey: []
+      - ApiKey: []
+      parameters:
+      - name: category
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - support
+          - billing
+        description: Omit for the per-category overview; set to drill into one category (with `cursor`). `security` and `marketing` are not readable over the API; see the 400 response.
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+        description: Opaque pagination cursor from a previous `nextCursor` (drill-down only).
+      responses:
+        '200':
+          description: 'Without `category`: an overview object keyed by category, each `{ rows: Notification[≤10], nextCursor }`. With `category`: a single `{ rows: Notification[≤10], nextCursor }` page. `nextCursor` is null when no older rows remain. Never marks anything read. Only categories the notification routing matrix permits on the `api` channel are present. `security` is NEVER included (an API key is a weaker credential than a session, so account-takeover events are not readable through one) and neither is `marketing`; a category whose `api` toggle you have switched off in your notification settings is omitted rather than returned empty.'
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: 'Overview (no `category`). Keys are present only for permitted categories: never `security`, and never a category disabled on the `api` channel in your settings.'
+                  properties:
+                    support:
+                      $ref: '#/components/schemas/NotificationPage'
+                    billing:
+                      $ref: '#/components/schemas/NotificationPage'
+                - $ref: '#/components/schemas/NotificationPage'
+              example:
+                support:
+                  rows:
+                  - id: '1287'
+                    category: support
+                    title: Support replied to your ticket
+                    snippet: '#42 · Cannot log in'
+                    link: /support
+                    createdAt: '2026-07-15T01:22:03.145Z'
+                  nextCursor: null
+                billing:
+                  rows: []
+                  nextCursor: null
+        '400':
+          description: Invalid cursor; unknown category; `category=security` (never available over the API); or a category you have disabled on the `api` channel. Disabled/unavailable categories fail loud rather than returning an empty page, so 'hidden by policy' is never mistaken for 'nothing to show'.
+        '401':
+          description: Missing or invalid API key credential.
+        '429':
+          description: Per-key rate limit exceeded (Retry-After header).
+      tags:
+      - Notifications
+      operationId: getApiNotifications
+      x-operation-id-source: derived
+components:
+  schemas:
+    NotificationPage:
+      type: object
+      properties:
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
+          description: Up to 10 notifications, newest first.
+        nextCursor:
+          type: string
+          nullable: true
+          description: Opaque cursor for the next page, or null when no older rows remain.
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+          example: '1287'
+        category:
+          type: string
+          enum:
+          - support
+          - billing
+          example: support
+        title:
+          type: string
+          example: Support replied to your ticket
+        snippet:
+          type: string
+          nullable: true
+          example: '#42 · Cannot log in'
+        link:
+          type: string
+          nullable: true
+          description: In-app deep target.
+          example: /support
+        createdAt:
+          type: string
+          format: date-time
+          example: '2026-07-15T01:22:03.145Z'
+  securitySchemes:
+    UrlKey:
+      type: apiKey
+      in: query
+      name: apiKey
+      description: 'url method (default): pass your key as `?apiKey=<key>`. The key is the whole credential.'
+    ApiKey:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: 'nonce method: `ApiKey base64(key:nonce:proof)` where `proof = SHA256("secret:nonce")` hex truncated to 19 chars (see the API description for the signing scheme).'
+x-apisguru-categories:
+- financial
+- analytics

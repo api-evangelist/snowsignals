@@ -1,0 +1,435 @@
+openapi: 3.2.0
+info:
+  title: Snowsignals Phase API
+  version: 1.0.0
+  contact:
+    name: SnowSignals
+    url: https://snowsignals.io
+  description: 'Operations tagged Phase across 2 of this provider''s published API definitions: snowsignals-daas-openapi.json, snowsignals-x402-openapi.json. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://snowsignals.io/v1
+- url: https://pay.snowsignals.io
+tags:
+- name: Phase
+paths:
+  /api/phase/resolution-stats:
+    get:
+      security: []
+      summary: 'Public, unmetered: how each phase historically resolves, to help interpret a…'
+      description: Serves the same generated research artifact as the MCP `phase_resolution_stats` tool. Returns the successor-phase transition matrix, the trend-hold continuation funnel, and per-phase reward-vs-drawdown (MFE/MAE), each with provenance (`statsVersion`, `generatedAt`, window). The model is built from BTC history over a fixed research window rather than per-currency live data, so it takes no query parameters. Use it to interpret a `/api/phase/{boundary,updates}` reading.
+      responses:
+        '200':
+          description: The phase-resolution artifact, served verbatim, plus a `legend`. `schemaVersion` pins the shape and the stat sections sit under provenance. `legend` (added at serve time) declares the units, how each transition edge is counted, the MFE/MAE horizon, and the pooling/scope. The on-site 'How it works' charts render the same artifact.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Generated phase-resolution research artifact (served verbatim) + serve-time legend.
+                properties:
+                  schemaVersion:
+                    type: integer
+                    description: Artifact shape version.
+                    example: 3
+                  statsVersion:
+                    type: string
+                    description: Dated version of the generated stats.
+                    example: 2026-09-01.2
+                  generatedAt:
+                    type: string
+                    format: date-time
+                    example: '2026-09-01T10:40:30.000Z'
+                  provenance:
+                    type: object
+                    description: 'How the model was derived: source product, currency (BTC), and the research window.'
+                  legend:
+                    type: object
+                    description: 'Units and definitions for interpreting the stat sections: a code↔enum↔label vocabulary crosswalk, plus transitionMatrix / trendHoldFunnel / rewardDrawdown / pooling / scope notes.'
+                additionalProperties: true
+              example:
+                legend:
+                  vocabulary:
+                  - label: Establishing
+                    code: EST
+                    enum: establishing_bull | establishing_bear
+                    statsLabel: Establishing
+                  - label: Running-First
+                    code: RF
+                    enum: running_first_bull | running_first_bear
+                    statsLabel: Running-First
+                  - label: Consolidating
+                    code: CON
+                    enum: consolidating_bull | consolidating_bear
+                    statsLabel: Consolidating
+                  - label: Re-entry
+                    code: REE
+                    enum: running_reentry_bull | running_reentry_bear
+                    statsLabel: Re-entry
+                  - label: Post-FE
+                    code: PFE
+                    enum: running_post_fe_bull | running_post_fe_bear
+                    statsLabel: Post-FE
+                  - label: Breaking
+                    code: BRK
+                    enum: breaking_bull | breaking_bear
+                    statsLabel: Breaking
+                  howToRead: 'n is an occurrence count: how many times the phase showed up in the window. It tells you the phase is common or rare, nothing about whether the pattern holds, so read the transitions (what tends to follow what) at any n. Read the mfe/mae figures as rough ranges rather than targets. They land closest to face value on the 4h and 1d, where steady price action forms clean moving-average channels, and carry more noise on the faster timeframes. Every timeframe is worth reading; the short ones just move quicker and rougher.'
+                  transitionMatrix: nodes.nBull/nBear = number of phase occurrences in that direction over the window. An edge value is the integer percent (0–100) of transitions LEAVING the source phase-state, row-normalized over that node's outgoing transitions. Edge id is 'SRC>DEST'; a _same/_flip suffix marks whether the successor keeps the side or flips it.
+                  trendHoldFunnel:
+                    _about: Per trend channel; integer percents.
+                    commit: '% of channels that reach a Running phase.'
+                    hold: '% of committed channels that close favorably vs entry.'
+                    reach: '% of committed channels that reach a Breaking phase.'
+                    exitWins: of channels reaching Breaking, % where exiting at the FIRST Breaking beats holding to the channel's end.
+                  rewardDrawdown: Measured per phase occurrence from the price at the phase's opening boundary to the phase's end. mfe = average max FAVORABLE excursion (% of entry price; up for bull, down for bear), floored at 0; mae = average max ADVERSE excursion. *Min/*Max give the range across occurrences; n = sample size. Horizon = the phase's own duration (entry boundary → phase end), not a fixed bar count.
+                  pooling: pooled_1h_2h and pooled_4h_1d group adjacent timeframes for larger samples; standalone 1h/2h/4h/1d are also provided.
+                  scope: 'Derived from BTC only, 2022-01-01 → 2026-07-01, on closed boundaries. 15m and 1w are excluded. A research model of phase behavior: not per-asset live expectancy; other currencies and the excluded timeframes are not represented.'
+        '429':
+          description: Per-IP rate limit exceeded (Retry-After header).
+      tags:
+      - Phase
+      operationId: getApiPhaseResolutionStats
+      x-operation-id-source: derived
+    servers:
+    - url: https://snowsignals.io/v1
+  /api/phase/boundary:
+    get:
+      summary: 'Metered Phase-Event read: boundary (the last closed-boundary phase…'
+      parameters:
+      - name: currency
+        in: query
+        schema:
+          type: string
+        description: 'Comma list or ''all''. GET /v1/api/phases for the live enabled currency list. Default: all.'
+      - name: tf
+        in: query
+        schema:
+          type: string
+        description: 'Comma list or ''all''. Enabled: 15m, 1h, 2h, 4h, 1d, 1w. Default: all.'
+      responses:
+        '200':
+          description: Phase readings (currency → timeframe) + metering meta.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    description: currency → timeframe → reading (null when that timeframe has no reading yet).
+                    additionalProperties:
+                      type: object
+                      additionalProperties:
+                        oneOf:
+                        - $ref: '#/components/schemas/PhaseReading'
+                        - type: 'null'
+                  stale:
+                    type: object
+                    description: Present ONLY inside the upstream composition window just after a minute boundary, when the exchange candle for the new minute has not yet settled and the returned phase may still reflect the previous minute. Absent means the data is settled. Poll again after pollAfterMs.
+                    properties:
+                      reason:
+                        type: string
+                        description: Human-readable explanation of why the data may be stale.
+                      pollAfterMs:
+                        type: integer
+                        description: Milliseconds until the composition window closes; poll again after this.
+                        example: 8200
+                  meta:
+                    type: object
+                    properties:
+                      rows:
+                        type: integer
+                        description: Rows served (n = |currencies| × |tfs|).
+                        example: 2
+                      debitMicroUsd:
+                        type: integer
+                        description: Amount billed for this request (rows × base rate × mult(rows)).
+                        example: 2661
+                      cached:
+                        type: boolean
+                        description: Whether the serve was a Redis cache hit. Billing is cache-independent.
+                        example: false
+                      endpoint:
+                        type: string
+                        enum:
+                        - boundary
+                        - updates
+                        description: Which serve semantic produced this response.
+                        example: boundary
+              example:
+                data:
+                  BTC:
+                    1h:
+                      ts: '2026-07-14T17:00:00.000Z'
+                      phase: establishing_bull
+                      label: Establishing Bull
+                meta:
+                  rows: 1
+                  debitMicroUsd: 1446
+                  cached: false
+                  endpoint: boundary
+        '400':
+          description: Invalid currency or tf.
+        '402':
+          description: Out of credits.
+        '423':
+          description: Account spending is paused (a refund is settling).
+        '429':
+          description: Per-key rate limit exceeded (Retry-After header).
+      tags:
+      - Phase
+      security:
+      - UrlKey: []
+      - ApiKey: []
+      operationId: getApiPhaseBoundary
+      x-operation-id-source: derived
+    servers:
+    - url: https://snowsignals.io/v1
+  /api/phase/updates:
+    get:
+      summary: 'Metered Phase-Event read: updates (the intra-bucket phase on the timeframe''s…'
+      parameters:
+      - name: currency
+        in: query
+        schema:
+          type: string
+        description: 'Comma list or ''all''. GET /v1/api/phases for the live enabled currency list. Default: all.'
+      - name: tf
+        in: query
+        schema:
+          type: string
+        description: 'Comma list or ''all''. Enabled: 15m, 1h, 2h, 4h, 1d, 1w. Default: all.'
+      responses:
+        '200':
+          description: Phase readings (currency → timeframe) + metering meta.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    description: currency → timeframe → reading (null when that timeframe has no reading yet).
+                    additionalProperties:
+                      type: object
+                      additionalProperties:
+                        oneOf:
+                        - $ref: '#/components/schemas/PhaseReading'
+                        - type: 'null'
+                  stale:
+                    type: object
+                    description: Present ONLY inside the upstream composition window just after a minute boundary, when the exchange candle for the new minute has not yet settled and the returned phase may still reflect the previous minute. Absent means the data is settled. Poll again after pollAfterMs.
+                    properties:
+                      reason:
+                        type: string
+                        description: Human-readable explanation of why the data may be stale.
+                      pollAfterMs:
+                        type: integer
+                        description: Milliseconds until the composition window closes; poll again after this.
+                        example: 8200
+                  meta:
+                    type: object
+                    properties:
+                      rows:
+                        type: integer
+                        description: Rows served (n = |currencies| × |tfs|).
+                        example: 2
+                      debitMicroUsd:
+                        type: integer
+                        description: Amount billed for this request (rows × base rate × mult(rows)).
+                        example: 2661
+                      cached:
+                        type: boolean
+                        description: Whether the serve was a Redis cache hit. Billing is cache-independent.
+                        example: false
+                      endpoint:
+                        type: string
+                        enum:
+                        - boundary
+                        - updates
+                        description: Which serve semantic produced this response.
+                        example: updates
+              example:
+                data:
+                  BTC:
+                    1h:
+                      ts: '2026-07-14T17:00:00.000Z'
+                      phase: establishing_bull
+                      label: Establishing Bull
+                meta:
+                  rows: 1
+                  debitMicroUsd: 1446
+                  cached: false
+                  endpoint: updates
+        '400':
+          description: Invalid currency or tf.
+        '402':
+          description: Out of credits.
+        '423':
+          description: Account spending is paused (a refund is settling).
+        '429':
+          description: Per-key rate limit exceeded (Retry-After header).
+      tags:
+      - Phase
+      security:
+      - UrlKey: []
+      - ApiKey: []
+      operationId: getApiPhaseUpdates
+      x-operation-id-source: derived
+    servers:
+    - url: https://snowsignals.io/v1
+  /phase/boundary:
+    get:
+      summary: Settled phase (last closed bar)
+      description: The deterministic phase from the last closed bar. Metered per row; requires an x402 payment. The 402 response quotes the exact price.
+      parameters:
+      - $ref: '#/components/parameters/currency'
+      - $ref: '#/components/parameters/tf'
+      responses:
+        '200':
+          $ref: '#/components/responses/PhaseData'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+      tags:
+      - Phase
+      operationId: getPhaseBoundary
+      x-operation-id-source: derived
+    servers:
+    - url: https://pay.snowsignals.io
+  /phase/updates:
+    get:
+      summary: Live phase (current bar)
+      description: The phase forming in the current bar; refreshed about once per minute. Metered per row; requires an x402 payment.
+      parameters:
+      - $ref: '#/components/parameters/currency'
+      - $ref: '#/components/parameters/tf'
+      responses:
+        '200':
+          $ref: '#/components/responses/PhaseData'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+      tags:
+      - Phase
+      operationId: getPhaseUpdates
+      x-operation-id-source: derived
+    servers:
+    - url: https://pay.snowsignals.io
+  /phase/resolution-stats:
+    get:
+      summary: Phase resolution statistics (free)
+      description: Successor-phase transition probabilities and reward-vs-drawdown stats. Free, no payment.
+      responses:
+        '200':
+          description: Resolution-stats document
+      tags:
+      - Phase
+      operationId: getPhaseResolutionStats
+      x-operation-id-source: derived
+    servers:
+    - url: https://pay.snowsignals.io
+components:
+  schemas:
+    PhaseReading:
+      type: object
+      properties:
+        ts:
+          type: string
+          format: date-time
+          example: '2026-07-14T17:00:00.000Z'
+        phase:
+          type: string
+          enum:
+          - establishing_bull
+          - establishing_bear
+          - running_reentry_bull
+          - running_reentry_bear
+          - running_first_bull
+          - running_first_bear
+          - consolidating_bull
+          - consolidating_bear
+          - running_post_fe_bull
+          - running_post_fe_bear
+          - breaking_bull
+          - breaking_bear
+          example: establishing_bull
+        label:
+          type: string
+          description: Human display label for `phase` (the full map is at GET /v1/api/phases). Derived from `phase`; do not key logic on it.
+          example: Establishing Bull
+  parameters:
+    currency:
+      name: currency
+      in: query
+      description: A single currency (e.g. BTC), a comma list, or 'all'.
+      schema:
+        type: string
+        default: BTC
+    tf:
+      name: tf
+      in: query
+      description: A single timeframe, a comma list, or 'all'. One of 15m, 1h, 2h, 4h, 1d, 1w.
+      schema:
+        type: string
+        default: 1h
+  responses:
+    BadRequest:
+      description: Invalid currency or timeframe, or a request exceeding the enabled-basket cap.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+    PhaseData:
+      description: Phase readings keyed currency -> timeframe.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                additionalProperties:
+                  type: object
+                  additionalProperties:
+                    type:
+                    - object
+                    - 'null'
+                    properties:
+                      ts:
+                        type: string
+                        format: date-time
+                      phase:
+                        type: string
+                        example: establishing_bull
+                      label:
+                        type: string
+                        example: Establishing Bull
+    PaymentRequired:
+      description: x402 payment required (x402 v2). The accepted payment requirements — price (USDC on Base), pay-to address, and asset — are carried in the base64 PAYMENT-REQUIRED response header; an x402 client decodes it, signs a USDC authorization for the quoted amount, and retries. The response body is empty.
+      headers:
+        PAYMENT-REQUIRED:
+          description: 'Base64-encoded x402 v2 PaymentRequired document: x402Version, accepts[] (scheme, network, asset, amount, payTo), and discovery extensions.'
+          schema:
+            type: string
+  securitySchemes:
+    UrlKey:
+      type: apiKey
+      in: query
+      name: apiKey
+      description: 'url method (default): pass your key as `?apiKey=<key>`. The key is the whole credential.'
+    ApiKey:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: 'nonce method: `ApiKey base64(key:nonce:proof)` where `proof = SHA256("secret:nonce")` hex truncated to 19 chars (see the API description for the signing scheme).'
+x-refined-from:
+- snowsignals-daas-openapi.json
+- snowsignals-x402-openapi.json
+x-apisguru-categories:
+- financial
+- analytics

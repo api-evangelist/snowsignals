@@ -1,0 +1,52 @@
+{
+  "provider": "snowsignals",
+  "sources": [
+    "_original/snowsignals-daas-openapi.json",
+    "_original/snowsignals-x402-openapi.json"
+  ],
+  "outputs": [
+    "snowsignals-notifications-api-openapi.yml",
+    "snowsignals-phase-api-openapi.yml",
+    "snowsignals-phases-api-openapi.yml",
+    "snowsignals-time-api-openapi.yml",
+    "snowsignals-user-api-openapi.yml"
+  ],
+  "archived": [],
+  "errors": [],
+  "warnings": [],
+  "notes": [
+    "sourced from openapi/_original/ (2 archived document(s)); previously refined output at the top level was skipped rather than re-split",
+    "snowsignals-daas-openapi.json: upgraded openapi 3.1.0 -> OpenAPI 3.2.0",
+    "snowsignals-daas-openapi.json: tagged paths GET /api/phase/resolution-stats -> Phase",
+    "snowsignals-daas-openapi.json: tagged paths GET /api/notifications -> Notifications",
+    "snowsignals-daas-openapi.json: tagged paths GET /api/phases -> Phases",
+    "snowsignals-daas-openapi.json: tagged paths GET /api/time -> Time",
+    "snowsignals-daas-openapi.json: tagged paths GET /user/balance -> User",
+    "snowsignals-daas-openapi.json: tagged paths GET /user/usage -> User",
+    "snowsignals-daas-openapi.json: tagged paths POST /user/deposit-now -> User",
+    "snowsignals-daas-openapi.json: tagged paths GET /api/phase/boundary -> Phase",
+    "snowsignals-daas-openapi.json: tagged paths GET /api/phase/updates -> Phase",
+    "snowsignals-daas-openapi.json: declared missing tag: Notifications",
+    "snowsignals-daas-openapi.json: declared missing tag: Phase",
+    "snowsignals-daas-openapi.json: declared missing tag: Phases",
+    "snowsignals-daas-openapi.json: declared missing tag: Time",
+    "snowsignals-daas-openapi.json: declared missing tag: User",
+    "snowsignals-x402-openapi.json: upgraded openapi 3.1.0 -> OpenAPI 3.2.0",
+    "snowsignals-x402-openapi.json: tagged paths GET /phase/boundary -> Phase",
+    "snowsignals-x402-openapi.json: tagged paths GET /phase/updates -> Phase",
+    "snowsignals-x402-openapi.json: tagged paths GET /phases -> Phases",
+    "snowsignals-x402-openapi.json: tagged paths GET /phase/resolution-stats -> Phase",
+    "snowsignals-x402-openapi.json: declared missing tag: Phase",
+    "snowsignals-x402-openapi.json: declared missing tag: Phases",
+    "tag 'Phase' spans 2 source specs (snowsignals-daas-openapi.json, snowsignals-x402-openapi.json): per-path servers applied",
+    "tag 'Phases' spans 2 source specs (snowsignals-daas-openapi.json, snowsignals-x402-openapi.json): per-path servers applied",
+    "apis.yml register: already-registered"
+  ],
+  "skipped": [
+    "snowsignals-notifications-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "snowsignals-phase-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "snowsignals-phases-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "snowsignals-time-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "snowsignals-user-api-openapi.yml: previously refined output, superseded by openapi/_original/"
+  ]
+}
