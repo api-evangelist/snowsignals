@@ -10,6 +10,23 @@ description: >-
   RFC 8414/9728 OAuth discovery, and an official MCP registry listing. A first-party x402
   gateway (pay.snowsignals.io, live 2026-09-10) additionally sells the same phase reads
   pay-per-call in USDC on Base with no account at all.
+deliveryModel:
+  model: saas
+  license_evidence:
+    not_product:
+    - snowkidind/snowsignals-mcp
+    - snowkidind/snowsignals-x402
+  open_source: unknown
+  commercial: true
+  callable_host: true
+  label: Hosted service · you call their endpoint
+  confidence: low
+  source:
+  - openapi
+  - pricing
+  - repository-not-product
+  generated: '2026-09-25'
+  method: derived
 image: https://snowsignals.io/og-image.png
 url: https://raw.githubusercontent.com/api-evangelist/snowsignals/refs/heads/main/apis.yml
 created: '2026-09-10'
@@ -25,7 +42,7 @@ tags:
 - trendvane
 - DaaS
 - MCP
-- agent-native
+- Agent-Native
 - Financial Data
 - x402
 tags_raw:
