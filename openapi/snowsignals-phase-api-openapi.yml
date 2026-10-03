@@ -360,15 +360,6 @@ components:
           description: Human display label for `phase` (the full map is at GET /v1/api/phases). Derived from `phase`; do not key logic on it.
           example: Establishing Bull
   responses:
-    BadRequest:
-      description: Invalid currency or timeframe, or a request exceeding the enabled-basket cap.
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
     PhaseData:
       description: Phase readings keyed currency -> timeframe.
       content:
@@ -401,14 +392,16 @@ components:
           description: 'Base64-encoded x402 v2 PaymentRequired document: x402Version, accepts[] (scheme, network, asset, amount, payTo), and discovery extensions.'
           schema:
             type: string
+    BadRequest:
+      description: Invalid currency or timeframe, or a request exceeding the enabled-basket cap.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
   parameters:
-    tf:
-      name: tf
-      in: query
-      description: A single timeframe, a comma list, or 'all'. One of 15m, 1h, 2h, 4h, 1d, 1w.
-      schema:
-        type: string
-        default: 1h
     currency:
       name: currency
       in: query
@@ -416,6 +409,13 @@ components:
       schema:
         type: string
         default: BTC
+    tf:
+      name: tf
+      in: query
+      description: A single timeframe, a comma list, or 'all'. One of 15m, 1h, 2h, 4h, 1d, 1w.
+      schema:
+        type: string
+        default: 1h
   securitySchemes:
     UrlKey:
       type: apiKey
