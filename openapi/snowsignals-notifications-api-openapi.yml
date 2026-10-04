@@ -77,6 +77,18 @@ paths:
       x-operation-id-source: derived
 components:
   schemas:
+    NotificationPage:
+      type: object
+      properties:
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
+          description: Up to 10 notifications, newest first.
+        nextCursor:
+          type: string
+          nullable: true
+          description: Opaque cursor for the next page, or null when no older rows remain.
     Notification:
       type: object
       properties:
@@ -105,18 +117,6 @@ components:
           type: string
           format: date-time
           example: '2026-07-15T01:22:03.145Z'
-    NotificationPage:
-      type: object
-      properties:
-        rows:
-          type: array
-          items:
-            $ref: '#/components/schemas/Notification'
-          description: Up to 10 notifications, newest first.
-        nextCursor:
-          type: string
-          nullable: true
-          description: Opaque cursor for the next page, or null when no older rows remain.
   securitySchemes:
     UrlKey:
       type: apiKey

@@ -360,6 +360,13 @@ components:
           description: Human display label for `phase` (the full map is at GET /v1/api/phases). Derived from `phase`; do not key logic on it.
           example: Establishing Bull
   responses:
+    PaymentRequired:
+      description: x402 payment required (x402 v2). The accepted payment requirements — price (USDC on Base), pay-to address, and asset — are carried in the base64 PAYMENT-REQUIRED response header; an x402 client decodes it, signs a USDC authorization for the quoted amount, and retries. The response body is empty.
+      headers:
+        PAYMENT-REQUIRED:
+          description: 'Base64-encoded x402 v2 PaymentRequired document: x402Version, accepts[] (scheme, network, asset, amount, payTo), and discovery extensions.'
+          schema:
+            type: string
     PhaseData:
       description: Phase readings keyed currency -> timeframe.
       content:
@@ -385,13 +392,6 @@ components:
                       label:
                         type: string
                         example: Establishing Bull
-    PaymentRequired:
-      description: x402 payment required (x402 v2). The accepted payment requirements — price (USDC on Base), pay-to address, and asset — are carried in the base64 PAYMENT-REQUIRED response header; an x402 client decodes it, signs a USDC authorization for the quoted amount, and retries. The response body is empty.
-      headers:
-        PAYMENT-REQUIRED:
-          description: 'Base64-encoded x402 v2 PaymentRequired document: x402Version, accepts[] (scheme, network, asset, amount, payTo), and discovery extensions.'
-          schema:
-            type: string
     BadRequest:
       description: Invalid currency or timeframe, or a request exceeding the enabled-basket cap.
       content:
