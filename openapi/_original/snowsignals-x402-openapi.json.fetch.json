@@ -1,0 +1,12 @@
+{
+ "url": "https://x402.snowsignals.io/openapi.json",
+ "requested_url": "https://x402.snowsignals.io/openapi.json",
+ "status": 200,
+ "content_type": "application/json; charset=utf-8",
+ "bytes": 4671,
+ "sha256": "07e581e9dd4d9ccbea5dae08ab5fdecd3c9bafd3a832333cf519b2c9d7db1f5d",
+ "fetched_at": "2026-10-04",
+ "fetched_by": "APIEvangelist-Harvest/1.0 (+https://apievangelist.com)",
+ "match": "byte-identical",
+ "note": "Re-fetched from the provider by verify-openapi-sources.py; the archived file is byte-identical to what the provider serves."
+}
