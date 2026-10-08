@@ -72,3 +72,22 @@ notes: >-
   went LIVE the same day: https://pay.snowsignals.io now serves the free routes (200) and a real
   x402 v2 challenge (402 + payment-required header) on the metered ones — recorded above and in
   openapi/snowsignals-x402-openapi.json.
+x-canonical:
+  generated: '2026-10-08'
+  vocabulary: all/0-working/economics/plans-canonical.yml
+  models:
+  - metered
+  units: []
+  plans:
+  - name: Prepaid metered (pay-as-you-go)
+    access: other
+    model: metered
+    model_how: derived
+    units: []
+    periods: []
+  - name: x402 pay-per-call (retail gateway)
+    access: other
+    model: metered
+    model_how: derived
+    units: []
+    periods: []
