@@ -86,3 +86,28 @@ notes: 'A third-party-shaped but first-party-published resale path also exists: 
   a Cloudflare Worker reselling phase reads per call over x402 (USDC on Base), intended for pay.snowsignals.io
   — that host currently answers 404 (probed 2026-09-10), so it is not yet a live surface and no pointer
   is emitted for it.'
+tool_quality:
+  tool_count: 9
+  tokens_total: 1457
+  tokens_per_tool_median: 144
+  heavy_tools: []
+  heavy_tool_count: 0
+  params_total: 11
+  params_undescribed: 2
+  params_described_pct: 81.8
+  tools_with_undescribed_params: 1
+  tools_annotated: 9
+  annotated_pct: 100.0
+  state_changing_unhinted: []
+  tools_missing_schema: 0
+  short_descriptions: 0
+  duplicate_descriptions: 0
+  duplicate_names: 0
+  nonportable_names: []
+  output_schema_count: 0
+  token_estimate: chars/3.6 of each compact tool definition
+  source: mcp/snowsignals-mcp-tools-list.json
+  measured: '2026-10-20'
+  scored: false
+  note: Facts from the saved tools/list capture (mcp_tool_quality.py); recorded, not scored. Checks learned
+    from Glimind's agent-readiness audit.
